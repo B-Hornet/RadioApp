@@ -1,0 +1,45 @@
+// File: android/build.gradle
+buildscript {
+    ext {
+        buildToolsVersion = "34.0.0"        // Latest build tools
+        minSdkVersion = 23                  // Minimum SDK version supported
+        compileSdkVersion = 34              // Compile SDK version
+        targetSdkVersion = 34               // Target SDK version
+        kotlinVersion = "1.9.24"            // Kotlin version for compatibility
+    }
+
+    repositories {
+        google()                            // Google's Maven repository for Android
+        mavenCentral()                      // Central Maven repository for dependencies
+        maven { url "$rootDir/../node_modules/react-native/android" }
+    }
+
+    dependencies {
+        // Gradle build tools and Kotlin
+        classpath("com.android.tools.build:gradle:8.1.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+        // React Native Gradle plugin
+        classpath(files("$rootDir/../node_modules/react-native/android/react-native-gradle-plugin"))
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        // Include JitPack for certain dependencies
+        maven { url 'https://jitpack.io' }  
+        // Add Facebook GitHub Maven repo securely
+        maven {
+            url 'https://maven.pkg.github.com/facebook/react-native'
+            credentials {
+                // Securely retrieve GitHub credentials from environment variables
+                username = System.getenv("GITHUB_USERNAME") ?: ""
+                password = System.getenv("GITHUB_TOKEN") ?: ""
+            }
+        }
+        // Local React Native module repository
+        maven { url "$rootDir/../node_modules/react-native/android" }
+    }
+}
+

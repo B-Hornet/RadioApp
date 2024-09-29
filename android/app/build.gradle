@@ -1,0 +1,37 @@
+// File: android/app/build.gradle
+apply plugin: "com.android.application"
+apply plugin: "org.jetbrains.kotlin.android"
+
+android {
+    namespace 'com.reebootradioapp' // Add your namespace here
+    compileSdkVersion 34
+
+    defaultConfig {
+        applicationId "com.reebootradioapp"
+        minSdkVersion 23
+        targetSdkVersion 34
+        versionCode 1
+        versionName "1.0"
+        multiDexEnabled true
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation "com.facebook.react:react-native:0.75.3"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.10"
+    implementation "androidx.multidex:multidex:2.0.1"
+    implementation project(':react-native-track-player')
+}
+

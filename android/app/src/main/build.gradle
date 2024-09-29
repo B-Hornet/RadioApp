@@ -1,0 +1,11 @@
+android {
+    compileSdkVersion 34
+    defaultConfig {
+        applicationId "com.reebootradioapp"  // Make sure this matches the package in AndroidManifest.xml
+        minSdkVersion 23
+        targetSdkVersion 34
+        versionCode 1
+        versionName "1.0"
+    }
+}
+

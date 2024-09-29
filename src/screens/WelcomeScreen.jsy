@@ -1,0 +1,53 @@
+import React from 'react';
+import { View, Text, Button, StyleSheet } from 'react-native';
+
+const WelcomeScreen = ({ navigation }) => {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.welcomeText}>Welcome to ReebootRadio!</Text>
+
+      {/* Navigation Buttons */}
+      <Button
+        title="Go to Radio Player"
+        onPress={() => navigation.navigate('RadioPlayer')}
+        color="#007AFF"
+      />
+
+      <Button
+        title="Go to Chat Room"
+        onPress={() => navigation.navigate('ChatRoom')}
+        color="#841584"
+      />
+
+      <Button
+        title="Go to Merch Shop"
+        onPress={() => navigation.navigate('MerchShop')}
+        color="#FF6347"
+      />
+
+      <Button
+        title="Go to Program Schedule"
+        onPress={() => navigation.navigate('ProgramSchedule')}
+        color="#32CD32"
+      />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  welcomeText: {
+    fontSize: 24,
+    marginBottom: 20,
+    color: '#333',
+  },
+});
+
+export default WelcomeScreen;
+
+
