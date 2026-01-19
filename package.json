@@ -1,6 +1,6 @@
 {
   "name": "ReebootRadioApp",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -8,7 +8,8 @@
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
-    "clean-cache": "rm -rf $TMPDIR/react-* && rm -rf node_modules/ && rm -rf ~/.npm && rm -rf ~/.metro-cache && npm cache clean --force && npm install"
+    "clean-cache": "rm -rf $TMPDIR/react-* && rm -rf node_modules/ && rm -rf ~/.npm && rm -rf ~/.metro-cache && npm cache clean --force && npm install",
+    "pod-install": "cd ios && pod install && cd .."
   },
   "dependencies": {
     "@babel/runtime": "^7.25.6",
@@ -16,10 +17,14 @@
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/stack": "^6.4.1",
     "glob": "^11.0.0",
+    "prop-types": "^15.8.1",
     "react": "18.2.0",
+    "react-native": "^0.73.0",
+    "react-native-gesture-handler": "^2.14.0",
     "react-native-safe-area-context": "^4.11.0",
     "react-native-screens": "^3.34.0",
     "react-native-track-player": "^4.1.1",
+    "react-native-video": "^6.0.0",
     "rimraf": "^6.0.1"
   },
   "devDependencies": {
