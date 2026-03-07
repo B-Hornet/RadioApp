@@ -1,55 +1,32 @@
-// Import necessary libraries
 import React, { useEffect } from 'react';
 import { SafeAreaView, StatusBar, StyleSheet } from 'react-native';
-import AppNavigator from './AppNavigator';  // Ensure this path is correct
-import TrackPlayer from 'react-native-track-player';
+import AppNavigator from './AppNavigator';
+import setupPlayer from './service';
+import { colors } from './theme';
 
 const App = () => {
-
-  // Use effect hook to initialize the TrackPlayer on app start
   useEffect(() => {
-    const setupPlayer = async () => {
-      try {
-        // Initialize TrackPlayer
-        await TrackPlayer.setupPlayer();
+    setupPlayer().catch((error) => {
+      console.error('Error setting up TrackPlayer:', error);
+    });
 
-        // Configure player options (play, pause, stop)
-        TrackPlayer.updateOptions({
-          stopWithApp: true,
-          capabilities: [
-            TrackPlayer.CAPABILITY_PLAY,
-            TrackPlayer.CAPABILITY_PAUSE,
-            TrackPlayer.CAPABILITY_STOP,
-          ],
-        });
-      } catch (error) {
-        console.error('Error setting up TrackPlayer:', error);
-      }
-    };
-
-    // Call setupPlayer when component mounts
-    setupPlayer();
-
-    // Optional cleanup when component unmounts
     return () => {
-      TrackPlayer.destroy();
+      // TrackPlayer cleanup handled by the service
     };
   }, []);
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      {/* Main navigation container */}
+      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
       <AppNavigator />
     </SafeAreaView>
   );
 };
 
-// Define styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
   },
 });
 
