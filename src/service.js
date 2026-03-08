@@ -1,31 +1,38 @@
-import TrackPlayer from 'react-native-track-player';
+import TrackPlayer, { Capability, RepeatMode } from 'react-native-track-player';
+import { STREAM_URL } from './constants';
 
 const setupPlayer = async () => {
-  // Setup the player
-  await TrackPlayer.setupPlayer();
-
-  // Add the radio stream to the player
-  await TrackPlayer.add({
-    id: '1',
-    url: 'http://yourstreamurl.com/stream', // Replace with your actual streaming URL
-    title: 'Reeboot Radio Live',
-    artist: 'Reeboot DJ',
-    artwork: 'https://your-image-url.com/image.jpg', // Optional artwork
+  await TrackPlayer.setupPlayer({
+    waitForBuffer: true,
   });
 
-  // Update options for playback controls
-  TrackPlayer.updateOptions({
+  await TrackPlayer.add({
+    id: 'reeboot-live',
+    url: STREAM_URL,
+    title: 'Reeboot Radio Live',
+    artist: 'Reeboot Radio',
+    artwork: require('../assets/Images/reebologo.png'),
+    isLiveStream: true,
+  });
+
+  await TrackPlayer.updateOptions({
     stopWithApp: true,
     capabilities: [
-      TrackPlayer.CAPABILITY_PLAY,
-      TrackPlayer.CAPABILITY_PAUSE,
-      TrackPlayer.CAPABILITY_STOP,
+      Capability.Play,
+      Capability.Pause,
+      Capability.Stop,
     ],
     compactCapabilities: [
-      TrackPlayer.CAPABILITY_PLAY,
-      TrackPlayer.CAPABILITY_PAUSE,
+      Capability.Play,
+      Capability.Pause,
+    ],
+    notificationCapabilities: [
+      Capability.Play,
+      Capability.Pause,
     ],
   });
+
+  await TrackPlayer.setRepeatMode(RepeatMode.Off);
 };
 
 export default setupPlayer;
