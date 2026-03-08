@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Text,
   View,
@@ -27,26 +27,37 @@ const { width } = Dimensions.get('window');
 
 // Hub screen with branded navigation
 const HubScreen = ({ navigation }) => {
+  const [videoError, setVideoError] = useState(false);
+
   return (
     <ScrollView
       style={hubStyles.container}
       contentContainerStyle={hubStyles.content}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header with animated MP4 logo */}
+      {/* Header with animated MP4 logo (PNG fallback) */}
       <View style={hubStyles.header}>
         <View style={hubStyles.logoVideoContainer}>
-          <Video
-            source={require('../assets/Radio App Background.mp4')}
-            style={hubStyles.logoVideo}
-            resizeMode="contain"
-            repeat={true}
-            muted={true}
-            playInBackground={false}
-            playWhenInactive={false}
-            disableFocus={true}
-            controls={false}
-          />
+          {!videoError ? (
+            <Video
+              source={require('../assets/Radio App Background.mp4')}
+              style={hubStyles.logoVideo}
+              resizeMode="cover"
+              repeat={true}
+              muted={true}
+              playInBackground={false}
+              playWhenInactive={false}
+              disableFocus={true}
+              controls={false}
+              onError={() => setVideoError(true)}
+            />
+          ) : (
+            <Image
+              source={require('../assets/Images/reebologo.png')}
+              style={hubStyles.logoVideo}
+              resizeMode="cover"
+            />
+          )}
         </View>
       </View>
 
@@ -125,6 +136,15 @@ const HubScreen = ({ navigation }) => {
           <Text style={hubStyles.tileLabel}>Merch Shop</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Back to Welcome screen */}
+      <TouchableOpacity
+        style={hubStyles.homeButton}
+        onPress={() => navigation.navigate('Welcome')}
+        activeOpacity={0.7}
+      >
+        <Text style={hubStyles.homeButtonText}>Back to Home</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -302,6 +322,21 @@ const hubStyles = StyleSheet.create({
     fontSize: fonts.sizes.md,
     fontWeight: fonts.weights.semibold,
     color: colors.textPrimary,
+  },
+  // Back to Welcome button
+  homeButton: {
+    marginTop: spacing.md,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    borderRadius: borderRadius.xl,
+    borderWidth: 1,
+    borderColor: '#2A2A2A',
+    backgroundColor: '#111111',
+  },
+  homeButtonText: {
+    color: colors.textSecondary,
+    fontSize: fonts.sizes.md,
+    fontWeight: fonts.weights.semibold,
   },
 });
 
