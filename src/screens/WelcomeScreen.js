@@ -42,7 +42,7 @@ const WelcomeScreen = ({ navigation }) => {
       {/* Looping video background */}
       {!videoError && (
         <Video
-          source={require('../../assets/Images/Radio App Background.mp4')}
+          source={require('../../assets/Radio App Background.mp4')}
           style={styles.backgroundVideo}
           resizeMode="cover"
           repeat={true}
