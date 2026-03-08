@@ -8,6 +8,7 @@ import {
   Dimensions,
   StatusBar,
   Image,
+  Linking,
 } from 'react-native';
 import Video from 'react-native-video';
 import { spacing, fonts, borderRadius } from '../theme';
@@ -100,7 +101,7 @@ const WelcomeScreen = ({ navigation }) => {
 
         <TouchableOpacity
           style={styles.websiteButton}
-          onPress={() => navigation.navigate('RadioPlayer')}
+          onPress={() => Linking.openURL('https://reebootradio.com')}
           activeOpacity={0.85}
         >
           <Text style={styles.websiteButtonText}>Go to the Website</Text>
