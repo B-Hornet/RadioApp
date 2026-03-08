@@ -5,22 +5,13 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  ActivityIndicator,
+  Share,
 } from 'react-native';
 import { db } from '../firebaseConfig';
 import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 import { colors, spacing, fonts, borderRadius } from '../theme';
-
-const BADGES = [
-  { id: 'first_listen', name: 'First Tune-In', emoji: '\uD83C\uDFB5', description: 'Listened for the first time' },
-  { id: 'chat_starter', name: 'Chat Starter', emoji: '\uD83D\uDCAC', description: 'Sent first chat message' },
-  { id: 'song_requester', name: 'Song Requester', emoji: '\uD83C\uDFA4', description: 'Requested a song' },
-  { id: 'night_owl', name: 'Night Owl', emoji: '\uD83E\uDD89', description: 'Listened after midnight' },
-  { id: 'weekend_warrior', name: 'Weekend Warrior', emoji: '\u26A1', description: 'Tuned in every weekend for a month' },
-  { id: 'top_voter', name: 'Top Voter', emoji: '\uD83D\uDC4D', description: 'Voted on 50+ song requests' },
-  { id: 'loyal_listener', name: 'Loyal Listener', emoji: '\uD83D\uDC8E', description: '100+ hours of listening' },
-  { id: 'fire_reactor', name: 'Fire Reactor', emoji: '\uD83D\uDD25', description: 'Sent 100+ reactions' },
-  { id: 'community_og', name: 'Community OG', emoji: '\uD83D\uDC51', description: 'Member since day one' },
-];
+import { BADGES, LEADERBOARD_LIMIT } from '../constants';
 
 const StatCard = ({ label, value, icon }) => (
   <View style={styles.statCard}>
@@ -52,23 +43,42 @@ const ListenerProfile = () => {
   });
   const [earnedBadges, setEarnedBadges] = useState(['first_listen', 'chat_starter']);
   const [leaderboard, setLeaderboard] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const leaderboardQuery = query(
       collection(db, 'leaderboard'),
       orderBy('points', 'desc'),
-      limit(10)
+      limit(LEADERBOARD_LIMIT)
     );
-    const unsubscribe = onSnapshot(leaderboardQuery, (snapshot) => {
-      const sorted = snapshot.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...docSnap.data(),
-      }));
-      setLeaderboard(sorted);
-    });
+    const unsubscribe = onSnapshot(
+      leaderboardQuery,
+      (snapshot) => {
+        const sorted = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        }));
+        setLeaderboard(sorted);
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error('Leaderboard listener error:', error);
+        setIsLoading(false);
+      }
+    );
 
     return () => unsubscribe();
   }, []);
+
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: 'Check out Reeboot Radio! Listen live and join the community. Download the app now!',
+      });
+    } catch (error) {
+      console.error('Share error:', error);
+    }
+  };
 
   const formatListeningTime = (minutes) => {
     if (minutes < 60) return `${minutes}m`;
@@ -165,7 +175,12 @@ const ListenerProfile = () => {
       </View>
 
       {/* Social sharing */}
-      <TouchableOpacity style={styles.shareButton}>
+      <TouchableOpacity
+        style={styles.shareButton}
+        onPress={handleShare}
+        accessibilityLabel="Share profile"
+        accessibilityRole="button"
+      >
         <Text style={styles.shareButtonText}>
           Share My Reeboot Radio Profile
         </Text>

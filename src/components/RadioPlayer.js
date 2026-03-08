@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, Animated, Alert } from 'react-native';
 import TrackPlayer, { usePlaybackState, State } from 'react-native-track-player';
 import LiveReactions from './LiveReactions';
 import { colors, spacing, fonts, borderRadius } from '../theme';
@@ -44,6 +44,7 @@ const RadioPlayer = () => {
       }
     } catch (error) {
       console.error('Playback error:', error);
+      Alert.alert('Playback Error', 'Unable to play the stream. Please try again.');
     }
   };
 
@@ -84,6 +85,8 @@ const RadioPlayer = () => {
         style={[styles.playButton, isPlaying && styles.playButtonActive]}
         onPress={togglePlayback}
         activeOpacity={0.8}
+        accessibilityLabel={isPlaying ? 'Pause radio' : 'Play radio'}
+        accessibilityRole="button"
       >
         <Text style={styles.playButtonIcon}>
           {isPlaying ? '\u23F8' : '\u25B6'}

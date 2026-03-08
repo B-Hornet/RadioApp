@@ -5,45 +5,53 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { db } from '../firebaseConfig';
 import { collection, doc, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { colors, spacing, fonts, borderRadius } from '../theme';
-
-const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-const DEFAULT_SCHEDULE = [
-  { id: '1', djName: 'DJ Reeboot', showName: 'The Morning Mix', day: 'Monday', startTime: '8:00 AM', endTime: '12:00 PM', genre: 'Hip-Hop / R&B' },
-  { id: '2', djName: 'DJ Reeboot', showName: 'Afternoon Vibes', day: 'Wednesday', startTime: '2:00 PM', endTime: '6:00 PM', genre: 'Soul / Funk' },
-  { id: '3', djName: 'DJ Reeboot', showName: 'Friday Night Live', day: 'Friday', startTime: '8:00 PM', endTime: '12:00 AM', genre: 'EDM / Dance' },
-  { id: '4', djName: 'DJ Reeboot', showName: 'Weekend Warm-Up', day: 'Saturday', startTime: '6:00 PM', endTime: '10:00 PM', genre: 'Mix / Open Format' },
-];
+import { DAYS, DEFAULT_SCHEDULE } from '../constants';
 
 const DJSchedule = () => {
   const [schedule, setSchedule] = useState(DEFAULT_SCHEDULE);
   const [nowPlaying, setNowPlaying] = useState(null);
   const [selectedDay, setSelectedDay] = useState(DAYS[new Date().getDay()]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const scheduleQuery = query(collection(db, 'djSchedule'), orderBy('day'));
-    const unsubscribe = onSnapshot(scheduleQuery, (snapshot) => {
-      if (!snapshot.empty) {
-        const scheduleList = snapshot.docs.map((docSnap) => ({
-          id: docSnap.id,
-          ...docSnap.data(),
-        }));
-        setSchedule(scheduleList);
+    const unsubscribe = onSnapshot(
+      scheduleQuery,
+      (snapshot) => {
+        if (!snapshot.empty) {
+          const scheduleList = snapshot.docs.map((docSnap) => ({
+            id: docSnap.id,
+            ...docSnap.data(),
+          }));
+          setSchedule(scheduleList);
+        }
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error('Schedule listener error:', error);
+        setIsLoading(false);
       }
-    });
+    );
 
     const nowPlayingRef = doc(db, 'appState', 'nowPlaying');
-    const unsubNowPlaying = onSnapshot(nowPlayingRef, (docSnap) => {
-      if (docSnap.exists()) {
-        setNowPlaying(docSnap.data());
-      } else {
-        setNowPlaying(null);
+    const unsubNowPlaying = onSnapshot(
+      nowPlayingRef,
+      (docSnap) => {
+        if (docSnap.exists()) {
+          setNowPlaying(docSnap.data());
+        } else {
+          setNowPlaying(null);
+        }
+      },
+      (error) => {
+        console.error('Now playing listener error:', error);
       }
-    });
+    );
 
     return () => {
       unsubscribe();
@@ -108,6 +116,8 @@ const DJSchedule = () => {
               selectedDay === item && styles.dayChipActive,
             ]}
             onPress={() => setSelectedDay(item)}
+            accessibilityLabel={`${item} schedule`}
+            accessibilityRole="button"
           >
             <Text
               style={[
@@ -133,21 +143,28 @@ const DJSchedule = () => {
       </View>
 
       {/* Shows list */}
-      <FlatList
-        data={todayShows}
-        renderItem={renderShow}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.showsList}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyEmoji}>{'\uD83C\uDF99\uFE0F'}</Text>
-            <Text style={styles.emptyText}>No shows scheduled</Text>
-            <Text style={styles.emptySubtext}>
-              Check back later or tune in to AutoDJ
-            </Text>
-          </View>
-        }
-      />
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading schedule...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={todayShows}
+          renderItem={renderShow}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.showsList}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyEmoji}>{'\uD83C\uDF99\uFE0F'}</Text>
+              <Text style={styles.emptyText}>No shows scheduled</Text>
+              <Text style={styles.emptySubtext}>
+                Check back later or tune in to AutoDJ
+              </Text>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 };
@@ -235,6 +252,17 @@ const styles = StyleSheet.create({
   showCount: {
     fontSize: fonts.sizes.sm,
     color: colors.textMuted,
+  },
+  // Loading
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: colors.textMuted,
+    fontSize: fonts.sizes.md,
+    marginTop: spacing.md,
   },
   showsList: {
     paddingHorizontal: spacing.lg,

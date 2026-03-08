@@ -1,4 +1,5 @@
 import TrackPlayer, { Capability, RepeatMode } from 'react-native-track-player';
+import { STREAM_URL } from './constants';
 
 const setupPlayer = async () => {
   await TrackPlayer.setupPlayer({
@@ -7,7 +8,7 @@ const setupPlayer = async () => {
 
   await TrackPlayer.add({
     id: 'reeboot-live',
-    url: 'https://streaming.live365.com/a49353',
+    url: STREAM_URL,
     title: 'Reeboot Radio Live',
     artist: 'Reeboot Radio',
     artwork: require('../assets/Images/reebologo.png'),

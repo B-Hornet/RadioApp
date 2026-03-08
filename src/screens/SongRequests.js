@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   FlatList,
   StyleSheet,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { db } from '../firebaseConfig';
 import {
@@ -28,47 +29,72 @@ const SongRequests = () => {
   const [artistName, setArtistName] = useState('');
   const [requesterName, setRequesterName] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const requestsQuery = query(
       collection(db, 'songRequests'),
       orderBy('timestamp', 'desc')
     );
-    const unsubscribe = onSnapshot(requestsQuery, (snapshot) => {
-      const requestList = snapshot.docs
-        .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
-        .sort((a, b) => (b.votes || 0) - (a.votes || 0));
-      setRequests(requestList);
-    });
+    const unsubscribe = onSnapshot(
+      requestsQuery,
+      (snapshot) => {
+        const requestList = snapshot.docs
+          .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+          .sort((a, b) => (b.votes || 0) - (a.votes || 0));
+        setRequests(requestList);
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error('Song requests listener error:', error);
+        setIsLoading(false);
+        Alert.alert('Connection Error', 'Unable to load song requests.');
+      }
+    );
 
     return () => unsubscribe();
   }, []);
 
-  const submitRequest = async () => {
+  const submitRequest = useCallback(async () => {
     if (!songTitle.trim()) {
       Alert.alert('Missing Info', 'Please enter a song title.');
       return;
     }
+    if (isSubmitting) return;
 
-    await addDoc(collection(db, 'songRequests'), {
-      songTitle: songTitle.trim(),
-      artistName: artistName.trim(),
-      requesterName: requesterName.trim() || 'Anonymous',
-      timestamp: serverTimestamp(),
-      votes: 0,
-      status: 'pending',
-    });
+    setIsSubmitting(true);
+    try {
+      await addDoc(collection(db, 'songRequests'), {
+        songTitle: songTitle.trim(),
+        artistName: artistName.trim(),
+        requesterName: requesterName.trim() || 'Anonymous',
+        timestamp: serverTimestamp(),
+        votes: 0,
+        status: 'pending',
+      });
 
-    setSongTitle('');
-    setArtistName('');
-    setShowForm(false);
-    Alert.alert('Request Sent!', 'Your song request has been submitted to the DJ.');
-  };
+      setSongTitle('');
+      setArtistName('');
+      setShowForm(false);
+      Alert.alert('Request Sent!', 'Your song request has been submitted to the DJ.');
+    } catch (error) {
+      console.error('Submit request error:', error);
+      Alert.alert('Submit Failed', 'Could not submit your request. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [songTitle, artistName, requesterName, isSubmitting]);
 
-  const voteForRequest = async (requestId) => {
-    const requestRef = doc(db, 'songRequests', requestId);
-    await updateDoc(requestRef, { votes: increment(1) });
-  };
+  const voteForRequest = useCallback(async (requestId) => {
+    try {
+      const requestRef = doc(db, 'songRequests', requestId);
+      await updateDoc(requestRef, { votes: increment(1) });
+    } catch (error) {
+      console.error('Vote error:', error);
+      Alert.alert('Vote Failed', 'Could not register your vote. Please try again.');
+    }
+  }, []);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -105,6 +131,8 @@ const SongRequests = () => {
       <TouchableOpacity
         style={styles.voteButton}
         onPress={() => voteForRequest(item.id)}
+        accessibilityLabel={`Vote for ${item.songTitle}`}
+        accessibilityRole="button"
       >
         <Text style={styles.voteArrow}>{'\u25B2'}</Text>
         <Text style={styles.voteCount}>{item.votes || 0}</Text>
@@ -127,6 +155,8 @@ const SongRequests = () => {
         <TouchableOpacity
           style={styles.requestButton}
           onPress={() => setShowForm(true)}
+          accessibilityLabel="Request a song"
+          accessibilityRole="button"
         >
           <Text style={styles.requestButtonText}>+ Request a Song</Text>
         </TouchableOpacity>
@@ -139,6 +169,7 @@ const SongRequests = () => {
             value={songTitle}
             onChangeText={setSongTitle}
             maxLength={100}
+            accessibilityLabel="Song title"
           />
           <TextInput
             style={styles.input}
@@ -147,6 +178,7 @@ const SongRequests = () => {
             value={artistName}
             onChangeText={setArtistName}
             maxLength={100}
+            accessibilityLabel="Artist name"
           />
           <TextInput
             style={styles.input}
@@ -155,6 +187,7 @@ const SongRequests = () => {
             value={requesterName}
             onChangeText={setRequesterName}
             maxLength={30}
+            accessibilityLabel="Your name"
           />
           <View style={styles.formActions}>
             <TouchableOpacity
@@ -163,27 +196,40 @@ const SongRequests = () => {
             >
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.submitButton} onPress={submitRequest}>
-              <Text style={styles.submitButtonText}>Submit Request</Text>
+            <TouchableOpacity
+              style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+              onPress={submitRequest}
+              disabled={isSubmitting}
+            >
+              <Text style={styles.submitButtonText}>
+                {isSubmitting ? 'Submitting...' : 'Submit Request'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
       )}
 
       {/* Request queue */}
-      <FlatList
-        data={requests}
-        renderItem={renderRequest}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyEmoji}>{'\uD83C\uDFB5'}</Text>
-            <Text style={styles.emptyText}>No requests yet</Text>
-            <Text style={styles.emptySubtext}>Be the first to request a song!</Text>
-          </View>
-        }
-      />
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading requests...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={requests}
+          renderItem={renderRequest}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyEmoji}>{'\uD83C\uDFB5'}</Text>
+              <Text style={styles.emptyText}>No requests yet</Text>
+              <Text style={styles.emptySubtext}>Be the first to request a song!</Text>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 };
@@ -259,10 +305,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     borderRadius: borderRadius.xl,
   },
+  submitButtonDisabled: {
+    opacity: 0.5,
+  },
   submitButtonText: {
     color: colors.textPrimary,
     fontSize: fonts.sizes.md,
     fontWeight: fonts.weights.bold,
+  },
+  // Loading
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: colors.textMuted,
+    fontSize: fonts.sizes.md,
+    marginTop: spacing.md,
   },
   listContent: {
     paddingHorizontal: spacing.lg,

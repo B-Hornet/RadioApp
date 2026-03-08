@@ -15,13 +15,7 @@ import {
   increment,
 } from 'firebase/firestore';
 import { colors, spacing, fonts, borderRadius } from '../theme';
-
-const REACTIONS = [
-  { id: 'fire', emoji: '\uD83D\uDD25', label: 'Fire' },
-  { id: 'heart', emoji: '\u2764\uFE0F', label: 'Love' },
-  { id: 'clap', emoji: '\uD83D\uDC4F', label: 'Clap' },
-  { id: 'hundred', emoji: '\uD83D\uDCAF', label: '100' },
-];
+import { REACTIONS } from '../constants';
 
 const FloatingEmoji = ({ emoji, onComplete }) => {
   const translateY = useRef(new Animated.Value(0)).current;
@@ -105,17 +99,19 @@ const LiveReactions = () => {
   };
 
   const sendReaction = async (reaction) => {
-    await addDoc(collection(db, 'liveReactions'), {
-      emoji: reaction.emoji,
-      reactionId: reaction.id,
-      timestamp: serverTimestamp(),
-    });
-
-    // Update counts
-    const countsRef = doc(db, 'appState', 'reactionCounts');
-    await setDoc(countsRef, { [reaction.id]: increment(1) }, { merge: true });
-
     addFloatingEmoji(reaction.emoji);
+    try {
+      await addDoc(collection(db, 'liveReactions'), {
+        emoji: reaction.emoji,
+        reactionId: reaction.id,
+        timestamp: serverTimestamp(),
+      });
+
+      const countsRef = doc(db, 'appState', 'reactionCounts');
+      await setDoc(countsRef, { [reaction.id]: increment(1) }, { merge: true });
+    } catch (error) {
+      console.error('Reaction send error:', error);
+    }
   };
 
   return (

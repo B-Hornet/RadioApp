@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { db } from '../firebaseConfig';
 import {
@@ -20,17 +22,9 @@ import {
   limit,
   serverTimestamp,
   doc,
-  getDoc,
 } from 'firebase/firestore';
 import { colors, spacing, fonts, borderRadius } from '../theme';
-
-// Default chatroom ID — uses the first Chatroom or creates messages in a default room
-const CHATROOM_ID = 'reebootlive';
-
-const CHAT_COLORS = [
-  '#FF6B00', '#1DB954', '#FF3B5C', '#FFD60A',
-  '#00D4FF', '#A855F7', '#F97316', '#14B8A6',
-];
+import { CHATROOM_ID, CHAT_COLORS, MESSAGE_LIMIT } from '../constants';
 
 const getColorForUser = (username) => {
   let hash = 0;
@@ -52,6 +46,8 @@ const ChatRoom = () => {
   const [username, setUsername] = useState('');
   const [isUsernameSet, setIsUsernameSet] = useState(false);
   const [listenerCount, setListenerCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
   const flatListRef = useRef(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -61,37 +57,52 @@ const ChatRoom = () => {
       duration: 500,
       useNativeDriver: true,
     }).start();
-  }, []);
+  }, [fadeAnim]);
 
   useEffect(() => {
     if (!isUsernameSet) return;
 
-    // Listen to Messages collection, ordered by timestamp, last 100
+    setIsLoading(true);
+
     const messagesQuery = query(
       collection(db, 'Messages'),
       orderBy('timestamp', 'asc'),
-      limit(100)
+      limit(MESSAGE_LIMIT)
     );
-    const unsubMessages = onSnapshot(messagesQuery, (snapshot) => {
-      const messageList = snapshot.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...docSnap.data(),
-        timestamp: docSnap.data().timestamp?.toMillis?.() || null,
-      }));
-      setMessages(messageList);
-    });
-
-    // Listen to active listeners count from Chatrooms doc
-    const chatroomRef = doc(db, 'Chatrooms', CHATROOM_ID);
-    const unsubListeners = onSnapshot(chatroomRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const members = data.members;
-        setListenerCount(
-          Array.isArray(members) ? members.length : (typeof members === 'number' ? members : 0)
-        );
+    const unsubMessages = onSnapshot(
+      messagesQuery,
+      (snapshot) => {
+        const messageList = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+          timestamp: docSnap.data().timestamp?.toMillis?.() || null,
+        }));
+        setMessages(messageList);
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error('Messages listener error:', error);
+        setIsLoading(false);
+        Alert.alert('Connection Error', 'Unable to load messages. Please check your connection.');
       }
-    });
+    );
+
+    const chatroomRef = doc(db, 'Chatrooms', CHATROOM_ID);
+    const unsubListeners = onSnapshot(
+      chatroomRef,
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const members = data.members;
+          setListenerCount(
+            Array.isArray(members) ? members.length : (typeof members === 'number' ? members : 0)
+          );
+        }
+      },
+      (error) => {
+        console.error('Listener count error:', error);
+      }
+    );
 
     return () => {
       unsubMessages();
@@ -99,19 +110,26 @@ const ChatRoom = () => {
     };
   }, [isUsernameSet]);
 
-  const sendMessage = async () => {
-    if (!inputText.trim()) return;
+  const sendMessage = useCallback(async () => {
+    if (!inputText.trim() || isSending) return;
 
-    await addDoc(collection(db, 'Messages'), {
-      text: inputText.trim(),
-      username: username,
-      timestamp: serverTimestamp(),
-      chatroomId: CHATROOM_ID,
-      type: 'message',
-    });
-
-    setInputText('');
-  };
+    setIsSending(true);
+    try {
+      await addDoc(collection(db, 'Messages'), {
+        text: inputText.trim(),
+        username: username,
+        timestamp: serverTimestamp(),
+        chatroomId: CHATROOM_ID,
+        type: 'message',
+      });
+      setInputText('');
+    } catch (error) {
+      console.error('Send message error:', error);
+      Alert.alert('Send Failed', 'Could not send your message. Please try again.');
+    } finally {
+      setIsSending(false);
+    }
+  }, [inputText, isSending, username]);
 
   const handleSetUsername = () => {
     if (username.trim().length >= 2) {
@@ -136,6 +154,8 @@ const ChatRoom = () => {
             maxLength={20}
             autoCapitalize="none"
             onSubmitEditing={handleSetUsername}
+            accessibilityLabel="Display name input"
+            accessibilityHint="Enter your display name to join the chat"
           />
           <TouchableOpacity
             style={[
@@ -144,6 +164,8 @@ const ChatRoom = () => {
             ]}
             onPress={handleSetUsername}
             disabled={username.trim().length < 2}
+            accessibilityLabel="Enter Chat Room"
+            accessibilityRole="button"
           >
             <Text style={styles.joinButtonText}>Enter Chat Room</Text>
           </TouchableOpacity>
@@ -194,17 +216,29 @@ const ChatRoom = () => {
       </View>
 
       {/* Messages list */}
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.messagesList}
-        onContentSizeChange={() =>
-          flatListRef.current?.scrollToEnd({ animated: true })
-        }
-        showsVerticalScrollIndicator={false}
-      />
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading messages...</Text>
+        </View>
+      ) : (
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.messagesList}
+          onContentSizeChange={() =>
+            flatListRef.current?.scrollToEnd({ animated: true })
+          }
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No messages yet. Say something!</Text>
+            </View>
+          }
+        />
+      )}
 
       {/* Input bar */}
       <View style={styles.inputContainer}>
@@ -217,13 +251,16 @@ const ChatRoom = () => {
           onSubmitEditing={sendMessage}
           returnKeyType="send"
           maxLength={500}
+          accessibilityLabel="Chat message input"
         />
         <TouchableOpacity
-          style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
+          style={[styles.sendButton, (!inputText.trim() || isSending) && styles.sendButtonDisabled]}
           onPress={sendMessage}
-          disabled={!inputText.trim()}
+          disabled={!inputText.trim() || isSending}
+          accessibilityLabel="Send message"
+          accessibilityRole="button"
         >
-          <Text style={styles.sendButtonText}>Send</Text>
+          <Text style={styles.sendButtonText}>{isSending ? '...' : 'Send'}</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -323,6 +360,28 @@ const styles = StyleSheet.create({
   listenerCount: {
     color: colors.textMuted,
     fontSize: fonts.sizes.sm,
+  },
+  // Loading
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: colors.textMuted,
+    fontSize: fonts.sizes.md,
+    marginTop: spacing.md,
+  },
+  // Empty
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: spacing.xxl,
+  },
+  emptyText: {
+    color: colors.textMuted,
+    fontSize: fonts.sizes.md,
   },
   // Messages
   messagesList: {
