@@ -1,56 +1,59 @@
 // Centralized theme for ReebootRadio App
-// Dark mode inspired theme with radio/DJ brand colors
+// Dark mode with red/black brand + gold/brown chatroom
 
 export const colors = {
-  // Primary brand colors
-  primary: '#FF6B00',        // Reeboot Orange — main accent
-  primaryLight: '#FF8C3A',
-  primaryDark: '#CC5500',
+  // Primary brand colors — Red & Black
+  primary: '#CC0000',        // Reeboot Red — main accent
+  primaryLight: '#E62020',
+  primaryDark: '#990000',
 
   // Secondary accent
-  secondary: '#1DB954',      // Live/Active green (from original play button)
+  secondary: '#1DB954',      // Live/Active green (play button)
   secondaryLight: '#1ED760',
   secondaryDark: '#17A348',
 
-  // Background hierarchy (dark theme)
-  background: '#0D0D0D',     // Deepest background
-  surface: '#1A1A2E',        // Cards, panels
-  surfaceLight: '#242442',   // Elevated surfaces
-  surfaceHighlight: '#2D2D4A', // Hover/active states
+  // Background hierarchy (dark/black theme)
+  background: '#0A0A0A',     // Deepest background
+  surface: '#151515',        // Cards, panels
+  surfaceLight: '#1E1E1E',   // Elevated surfaces
+  surfaceHighlight: '#2A2A2A', // Hover/active states
 
   // Text hierarchy
   textPrimary: '#FFFFFF',
-  textSecondary: '#B0B0C0',
-  textMuted: '#6B6B80',
-  textAccent: '#FF6B00',
+  textSecondary: '#B0B0B0',
+  textMuted: '#666666',
+  textAccent: '#CC0000',
 
-  // Chat specific
-  chatBubbleOwn: '#FF6B00',
-  chatBubbleOther: '#242442',
-  chatInput: '#1A1A2E',
-  chatBorder: '#2D2D4A',
+  // Chat specific — Gold/Yellow/Brown
+  chatBubbleOwn: '#B8860B',      // Dark goldenrod
+  chatBubbleOther: '#2A1F0A',    // Dark brown surface
+  chatInput: '#1A1508',          // Deep brown input
+  chatBorder: '#3D2E0A',        // Brown border
+  chatAccent: '#DAA520',         // Goldenrod accent
+  chatGold: '#FFD700',           // Bright gold
+  chatBrown: '#8B6914',          // Medium brown
 
   // Status colors
   live: '#FF3B30',           // Live indicator red
   online: '#1DB954',         // Online/active green
-  offline: '#6B6B80',
+  offline: '#666666',
   warning: '#FFD60A',
 
   // Reactions
-  reactionFire: '#FF6B00',
+  reactionFire: '#CC0000',
   reactionHeart: '#FF3B5C',
   reactionClap: '#FFD60A',
   reactionHundred: '#1DB954',
 
   // Navigation
-  tabActive: '#FF6B00',
-  tabInactive: '#6B6B80',
-  headerBackground: '#0D0D0D',
-  headerBorder: '#1A1A2E',
+  tabActive: '#CC0000',
+  tabInactive: '#666666',
+  headerBackground: '#0A0A0A',
+  headerBorder: '#1A1A1A',
 
   // Borders & dividers
-  border: '#2D2D4A',
-  divider: '#1A1A2E',
+  border: '#2A2A2A',
+  divider: '#1A1A1A',
 
   // Overlay
   overlay: 'rgba(0, 0, 0, 0.7)',

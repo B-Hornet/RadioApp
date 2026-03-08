@@ -137,6 +137,7 @@ const ChatRoom = () => {
     }
   };
 
+  // Username entry screen — Gold/Brown themed
   if (!isUsernameSet) {
     return (
       <Animated.View style={[styles.usernameContainer, { opacity: fadeAnim }]}>
@@ -148,7 +149,7 @@ const ChatRoom = () => {
           <TextInput
             style={styles.usernameInput}
             placeholder="Choose a display name..."
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor="#8B7355"
             value={username}
             onChangeText={setUsername}
             maxLength={20}
@@ -204,7 +205,7 @@ const ChatRoom = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={90}
     >
-      {/* Live indicator bar */}
+      {/* Live indicator bar — gold themed */}
       <View style={styles.liveBar}>
         <View style={styles.liveIndicator}>
           <View style={styles.liveDot} />
@@ -218,7 +219,7 @@ const ChatRoom = () => {
       {/* Messages list */}
       {isLoading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color="#DAA520" />
           <Text style={styles.loadingText}>Loading messages...</Text>
         </View>
       ) : (
@@ -240,12 +241,12 @@ const ChatRoom = () => {
         />
       )}
 
-      {/* Input bar */}
+      {/* Input bar — gold/brown themed */}
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.textInput}
           placeholder="Say something..."
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor="#8B7355"
           value={inputText}
           onChangeText={setInputText}
           onSubmitEditing={sendMessage}
@@ -268,77 +269,83 @@ const ChatRoom = () => {
 };
 
 const styles = StyleSheet.create({
+  // Main container — dark brown/black background
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#0F0A00',
   },
-  // Username entry screen
+  // Username entry screen — gold themed
   usernameContainer: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#0F0A00',
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.lg,
   },
   usernameCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: '#1A1508',
     borderRadius: borderRadius.lg,
     padding: spacing.xl,
     width: '100%',
     maxWidth: 360,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#3D2E0A',
   },
   usernameTitle: {
     fontSize: fonts.sizes.xxl,
     fontWeight: fonts.weights.bold,
-    color: colors.textPrimary,
+    color: '#FFD700',
     marginBottom: spacing.sm,
   },
   usernameSubtitle: {
     fontSize: fonts.sizes.md,
-    color: colors.textSecondary,
+    color: '#B8A060',
     textAlign: 'center',
     marginBottom: spacing.lg,
   },
   usernameInput: {
-    backgroundColor: colors.surfaceLight,
+    backgroundColor: '#2A1F0A',
     borderRadius: borderRadius.md,
     padding: spacing.md,
     fontSize: fonts.sizes.lg,
-    color: colors.textPrimary,
+    color: '#FFD700',
     width: '100%',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#3D2E0A',
     marginBottom: spacing.md,
   },
   joinButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: '#B8860B',
     borderRadius: borderRadius.xl,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
     width: '100%',
     alignItems: 'center',
+    shadowColor: '#DAA520',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
   },
   joinButtonDisabled: {
     opacity: 0.4,
   },
   joinButtonText: {
-    color: colors.textPrimary,
+    color: '#FFFFFF',
     fontSize: fonts.sizes.lg,
     fontWeight: fonts.weights.bold,
   },
-  // Live bar
+  // Live bar — gold accent
   liveBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.surface,
+    backgroundColor: '#1A1508',
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: '#3D2E0A',
   },
   liveIndicator: {
     flexDirection: 'row',
@@ -348,17 +355,17 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.live,
+    backgroundColor: '#FFD700',
     marginRight: spacing.xs,
   },
   liveText: {
-    color: colors.live,
+    color: '#DAA520',
     fontSize: fonts.sizes.sm,
     fontWeight: fonts.weights.bold,
     letterSpacing: 1,
   },
   listenerCount: {
-    color: colors.textMuted,
+    color: '#8B7355',
     fontSize: fonts.sizes.sm,
   },
   // Loading
@@ -368,7 +375,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: colors.textMuted,
+    color: '#8B7355',
     fontSize: fonts.sizes.md,
     marginTop: spacing.md,
   },
@@ -380,7 +387,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xxl,
   },
   emptyText: {
-    color: colors.textMuted,
+    color: '#8B7355',
     fontSize: fonts.sizes.md,
   },
   // Messages
@@ -403,11 +410,11 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
   },
   messageBubbleOwn: {
-    backgroundColor: colors.chatBubbleOwn,
+    backgroundColor: '#B8860B',
     borderBottomRightRadius: borderRadius.sm,
   },
   messageBubbleOther: {
-    backgroundColor: colors.chatBubbleOther,
+    backgroundColor: '#2A1F0A',
     borderBottomLeftRadius: borderRadius.sm,
   },
   messageUsername: {
@@ -416,40 +423,40 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   messageText: {
-    color: colors.textPrimary,
+    color: '#FFFFFF',
     fontSize: fonts.sizes.md,
     lineHeight: 20,
   },
   messageTime: {
-    color: 'rgba(255,255,255,0.5)',
+    color: 'rgba(255,215,0,0.5)',
     fontSize: fonts.sizes.xs,
     alignSelf: 'flex-end',
     marginTop: 2,
   },
-  // Input
+  // Input — gold/brown
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.surface,
+    backgroundColor: '#1A1508',
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: '#3D2E0A',
   },
   textInput: {
     flex: 1,
-    backgroundColor: colors.chatInput,
+    backgroundColor: '#2A1F0A',
     borderRadius: borderRadius.xl,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    color: colors.textPrimary,
+    color: '#FFD700',
     fontSize: fonts.sizes.md,
     borderWidth: 1,
-    borderColor: colors.chatBorder,
+    borderColor: '#3D2E0A',
     marginRight: spacing.sm,
   },
   sendButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: '#B8860B',
     borderRadius: borderRadius.full,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -458,7 +465,7 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   sendButtonText: {
-    color: colors.textPrimary,
+    color: '#FFFFFF',
     fontSize: fonts.sizes.md,
     fontWeight: fonts.weights.bold,
   },

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Animated, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Alert } from 'react-native';
+import Video from 'react-native-video';
 import TrackPlayer, { usePlaybackState, State } from 'react-native-track-player';
 import LiveReactions from './LiveReactions';
 import { colors, spacing, fonts, borderRadius } from '../theme';
@@ -50,7 +51,7 @@ const RadioPlayer = () => {
 
   return (
     <View style={styles.container}>
-      {/* Station artwork */}
+      {/* Station artwork — animated MP4 video logo */}
       <View style={styles.artworkContainer}>
         <Animated.View
           style={[
@@ -58,11 +59,19 @@ const RadioPlayer = () => {
             isPlaying && { transform: [{ scale: pulseAnim }] },
           ]}
         />
-        <Image
-          source={require('../../assets/Images/reebologo.png')}
-          style={styles.artwork}
-          resizeMode="contain"
-        />
+        <View style={styles.artworkVideoWrapper}>
+          <Video
+            source={require('../../assets/Radio App Background.mp4')}
+            style={styles.artworkVideo}
+            resizeMode="cover"
+            repeat={true}
+            muted={true}
+            playInBackground={false}
+            playWhenInactive={false}
+            disableFocus={true}
+            controls={false}
+          />
+        </View>
       </View>
 
       {/* Station info */}
@@ -74,10 +83,10 @@ const RadioPlayer = () => {
         </Text>
       </View>
 
-      {/* Now playing track info */}
+      {/* Now playing track info — removed Live365 reference */}
       <View style={styles.trackInfo}>
         <Text style={styles.trackTitle}>Reeboot Radio Live</Text>
-        <Text style={styles.trackArtist}>Live365 Stream</Text>
+        <Text style={styles.trackArtist}>Your Sound. Your Station.</Text>
       </View>
 
       {/* Playback controls */}
@@ -126,25 +135,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   artworkContainer: {
-    width: 200,
-    height: 200,
+    width: 220,
+    height: 220,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.lg,
   },
   artworkGlow: {
     position: 'absolute',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
     backgroundColor: colors.primary,
     opacity: 0.15,
   },
-  artwork: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    backgroundColor: colors.surface,
+  artworkVideoWrapper: {
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: colors.primary,
+  },
+  artworkVideo: {
+    width: 180,
+    height: 180,
   },
   stationName: {
     fontSize: fonts.sizes.hero,
@@ -224,4 +239,3 @@ const styles = StyleSheet.create({
 });
 
 export default RadioPlayer;
-

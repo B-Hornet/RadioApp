@@ -8,6 +8,7 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
+import Video from 'react-native-video';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { colors, fonts, spacing, borderRadius } from './theme';
@@ -32,16 +33,24 @@ const HubScreen = ({ navigation }) => {
       contentContainerStyle={hubStyles.content}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header with logo */}
+      {/* Header with animated MP4 logo */}
       <View style={hubStyles.header}>
-        <Image
-          source={require('../assets/Images/reebologo.png')}
-          style={hubStyles.logo}
-          resizeMode="contain"
-        />
+        <View style={hubStyles.logoVideoContainer}>
+          <Video
+            source={require('../assets/Radio App Background.mp4')}
+            style={hubStyles.logoVideo}
+            resizeMode="contain"
+            repeat={true}
+            muted={true}
+            playInBackground={false}
+            playWhenInactive={false}
+            disableFocus={true}
+            controls={false}
+          />
+        </View>
       </View>
 
-      {/* NOW PLAYING - big featured card */}
+      {/* NOW PLAYING - big featured card — Red/Black */}
       <TouchableOpacity
         style={hubStyles.featuredCard}
         onPress={() => navigation.navigate('RadioPlayer')}
@@ -59,7 +68,7 @@ const HubScreen = ({ navigation }) => {
         </View>
       </TouchableOpacity>
 
-      {/* LIVE CHAT - prominent card */}
+      {/* LIVE CHAT - Gold/Brown themed card */}
       <TouchableOpacity
         style={hubStyles.chatCard}
         onPress={() => navigation.navigate('ChatRoom')}
@@ -127,29 +136,42 @@ const hubStyles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
+    paddingTop: spacing.sm,
     paddingBottom: spacing.xxl,
   },
-  // Header
+  // Header — animated MP4 logo
   header: {
     alignItems: 'center',
     marginBottom: spacing.lg,
   },
-  logo: {
-    width: 120,
-    height: 120,
+  logoVideoContainer: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: '#CC0000',
+    shadowColor: '#CC0000',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 10,
   },
-  // Featured NOW PLAYING card
+  logoVideo: {
+    width: 140,
+    height: 140,
+  },
+  // Featured NOW PLAYING card — Red/Black
   featuredCard: {
-    backgroundColor: '#1A0A00',
+    backgroundColor: '#1A0505',
     borderRadius: borderRadius.lg,
     padding: spacing.xl,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: '#FF6B00',
+    borderColor: '#CC0000',
     alignItems: 'center',
     overflow: 'hidden',
-    shadowColor: '#FF6B00',
+    shadowColor: '#CC0000',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
     shadowRadius: 20,
@@ -161,7 +183,7 @@ const hubStyles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: '#FF6B00',
+    backgroundColor: '#CC0000',
     opacity: 0.08,
   },
   liveBadge: {
@@ -189,7 +211,7 @@ const hubStyles = StyleSheet.create({
   featuredTitle: {
     fontSize: fonts.sizes.xxl,
     fontWeight: fonts.weights.heavy,
-    color: '#FF6B00',
+    color: '#CC0000',
     marginBottom: spacing.xs,
   },
   featuredSubtitle: {
@@ -201,10 +223,10 @@ const hubStyles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#FF6B00',
+    backgroundColor: '#CC0000',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#FF6B00',
+    shadowColor: '#CC0000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,
     shadowRadius: 12,
@@ -215,15 +237,15 @@ const hubStyles = StyleSheet.create({
     color: '#FFFFFF',
     marginLeft: 3,
   },
-  // Chat card
+  // Chat card — Gold/Brown theme
   chatCard: {
-    backgroundColor: '#0A1A0A',
+    backgroundColor: '#1A1508',
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
     marginBottom: spacing.md,
     borderWidth: 1,
-    borderColor: '#1DB954',
-    shadowColor: '#1DB954',
+    borderColor: '#DAA520',
+    shadowColor: '#DAA520',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -237,7 +259,7 @@ const hubStyles = StyleSheet.create({
   chatTitle: {
     fontSize: fonts.sizes.xl,
     fontWeight: fonts.weights.bold,
-    color: '#1DB954',
+    color: '#DAA520',
     marginBottom: spacing.xs,
   },
   chatSubtitle: {
@@ -249,7 +271,7 @@ const hubStyles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: 'rgba(29, 185, 84, 0.15)',
+    backgroundColor: 'rgba(218, 165, 32, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -270,7 +292,7 @@ const hubStyles = StyleSheet.create({
     margin: '1.5%',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#2D2D2D',
+    borderColor: '#2A2A2A',
   },
   tileIcon: {
     fontSize: 32,
@@ -322,11 +344,11 @@ const AppNavigator = () => {
               shadowOpacity: 0,
               borderBottomWidth: 0,
             },
-            headerTintColor: '#FF6B00',
+            headerTintColor: '#CC0000',
             headerTitleStyle: {
               fontWeight: fonts.weights.heavy,
               fontSize: fonts.sizes.xl,
-              color: '#FF6B00',
+              color: '#CC0000',
             },
           }}
         />
@@ -338,7 +360,22 @@ const AppNavigator = () => {
         <Stack.Screen
           name="ChatRoom"
           component={ChatRoom}
-          options={{ title: 'Live Chat' }}
+          options={{
+            title: 'Live Chat',
+            headerStyle: {
+              backgroundColor: '#0F0A00',
+              elevation: 0,
+              shadowOpacity: 0,
+              borderBottomWidth: 1,
+              borderBottomColor: '#3D2E0A',
+            },
+            headerTintColor: '#DAA520',
+            headerTitleStyle: {
+              fontWeight: fonts.weights.bold,
+              fontSize: fonts.sizes.lg,
+              color: '#DAA520',
+            },
+          }}
         />
         <Stack.Screen
           name="SongRequests"
