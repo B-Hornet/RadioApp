@@ -5,7 +5,7 @@ import { View, Image, Button, StyleSheet } from 'react-native';
 const HomeScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <Image source={require('../../assets/images/logo.png')} style={styles.logo} />
+      <Image source={require('../../assets/Images/reebologo.png')} style={styles.logo} />
       
       <Button title="Go to Radio Player" onPress={() => navigation.navigate('RadioPlayer')} />
       <Button title="Go to Chat Room" onPress={() => navigation.navigate('ChatRoom')} />

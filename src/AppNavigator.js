@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, View, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { colors, fonts, spacing, borderRadius } from './theme';
@@ -29,6 +29,11 @@ const HubScreen = ({ navigation }) => {
   return (
     <View style={hubStyles.container}>
       <View style={hubStyles.header}>
+        <Image
+          source={require('../assets/Images/reebologo.png')}
+          style={hubStyles.logo}
+          resizeMode="contain"
+        />
         <Text style={hubStyles.title}>Reeboot Radio</Text>
         <Text style={hubStyles.subtitle}>Your community radio station</Text>
       </View>
@@ -57,7 +62,13 @@ const hubStyles = StyleSheet.create({
     paddingTop: spacing.xxl,
   },
   header: {
+    alignItems: 'center',
     marginBottom: spacing.xl,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    marginBottom: spacing.md,
   },
   title: {
     fontSize: fonts.sizes.hero,
