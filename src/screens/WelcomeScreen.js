@@ -3,168 +3,50 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   StyleSheet,
   Animated,
   Dimensions,
+  StatusBar,
 } from 'react-native';
-import { colors, spacing, fonts, borderRadius } from '../theme';
+import Video from 'react-native-video';
+import { spacing, fonts, borderRadius } from '../theme';
 
 const { width, height } = Dimensions.get('window');
 
-// Animated ember/particle component
-const Ember = ({ delay, startX, startY, size }) => {
-  const translateY = useRef(new Animated.Value(0)).current;
-  const translateX = useRef(new Animated.Value(0)).current;
-  const opacity = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const animate = () => {
-      translateY.setValue(0);
-      translateX.setValue(0);
-      opacity.setValue(0);
-
-      Animated.parallel([
-        Animated.timing(translateY, {
-          toValue: -(100 + Math.random() * 200),
-          duration: 2000 + Math.random() * 2000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(translateX, {
-          toValue: (Math.random() - 0.5) * 80,
-          duration: 2000 + Math.random() * 2000,
-          useNativeDriver: true,
-        }),
-        Animated.sequence([
-          Animated.timing(opacity, {
-            toValue: 0.8,
-            duration: 400,
-            useNativeDriver: true,
-          }),
-          Animated.timing(opacity, {
-            toValue: 0,
-            duration: 1600 + Math.random() * 2000,
-            useNativeDriver: true,
-          }),
-        ]),
-      ]).start(() => animate());
-    };
-
-    const timer = setTimeout(animate, delay);
-    return () => clearTimeout(timer);
-  }, []);
-
-  return (
-    <Animated.View
-      style={[
-        styles.ember,
-        {
-          left: startX,
-          top: startY,
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          opacity,
-          transform: [{ translateY }, { translateX }],
-        },
-      ]}
-    />
-  );
-};
-
 const WelcomeScreen = ({ navigation }) => {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.8)).current;
-  const glowAnim = useRef(new Animated.Value(0.3)).current;
   const buttonFade = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Logo entrance
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1200,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 20,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    // Buttons fade in after logo
+    // Buttons fade in after video starts
     Animated.timing(buttonFade, {
       toValue: 1,
-      duration: 800,
-      delay: 800,
+      duration: 1000,
+      delay: 600,
       useNativeDriver: true,
     }).start();
-
-    // Continuous glow pulse
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(glowAnim, {
-          toValue: 0.6,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-        Animated.timing(glowAnim, {
-          toValue: 0.2,
-          duration: 1500,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
   }, []);
-
-  // Generate embers
-  const embers = Array.from({ length: 20 }, (_, i) => ({
-    id: i,
-    delay: i * 300,
-    startX: Math.random() * width,
-    startY: height * 0.4 + Math.random() * (height * 0.4),
-    size: 2 + Math.random() * 4,
-  }));
 
   return (
     <View style={styles.container}>
-      {/* Ember particles */}
-      {embers.map((ember) => (
-        <Ember
-          key={ember.id}
-          delay={ember.delay}
-          startX={ember.startX}
-          startY={ember.startY}
-          size={ember.size}
-        />
-      ))}
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* Radial glow behind logo */}
-      <Animated.View style={[styles.glowOuter, { opacity: glowAnim }]} />
-      <Animated.View
-        style={[styles.glowInner, { opacity: Animated.multiply(glowAnim, 1.5) }]}
+      {/* Looping video background — covers full screen */}
+      <Video
+        source={require('../../assets/Images/Radio App Background.mp4')}
+        style={styles.backgroundVideo}
+        resizeMode="cover"
+        repeat={true}
+        muted={true}
+        playInBackground={false}
+        playWhenInactive={false}
+        disableFocus={true}
+        controls={false}
       />
 
-      {/* Logo */}
-      <Animated.View
-        style={[
-          styles.logoContainer,
-          {
-            opacity: fadeAnim,
-            transform: [{ scale: scaleAnim }],
-          },
-        ]}
-      >
-        <Image
-          source={require('../../assets/Images/reebologo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-      </Animated.View>
+      {/* Dark overlay for button readability */}
+      <View style={styles.overlay} />
 
-      {/* Buttons */}
+      {/* Buttons at bottom */}
       <Animated.View style={[styles.buttonContainer, { opacity: buttonFade }]}>
         <TouchableOpacity
           style={styles.listenButton}
@@ -175,11 +57,11 @@ const WelcomeScreen = ({ navigation }) => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.enterButton}
+          style={styles.websiteButton}
           onPress={() => navigation.navigate('RadioPlayer')}
           activeOpacity={0.8}
         >
-          <Text style={styles.enterButtonText}>Jump to Live Stream</Text>
+          <Text style={styles.websiteButtonText}>Go to the Website</Text>
         </TouchableOpacity>
       </Animated.View>
     </View>
@@ -190,89 +72,64 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  // Ember particles
-  ember: {
+  // Video fills the entire screen edge-to-edge
+  backgroundVideo: {
     position: 'absolute',
-    backgroundColor: '#FF6B00',
-    shadowColor: '#FF6B00',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 4,
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    width: width,
+    height: height,
   },
-  // Glow effects
-  glowOuter: {
+  // Subtle gradient overlay at the bottom so buttons are readable
+  overlay: {
     position: 'absolute',
-    width: 350,
-    height: 350,
-    borderRadius: 175,
-    backgroundColor: '#FF6B00',
-    top: height * 0.2,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: height * 0.35,
+    backgroundColor: 'transparent',
+    // Fallback: a subtle dark tint at the bottom
+    borderTopWidth: 0,
   },
-  glowInner: {
-    position: 'absolute',
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    backgroundColor: '#CC3300',
-    top: height * 0.2 + 50,
-  },
-  // Logo
-  logoContainer: {
-    width: 280,
-    height: 280,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: spacing.xxl,
-  },
-  logo: {
-    width: 260,
-    height: 260,
-  },
-  // Buttons
+  // Buttons positioned at the bottom like your original app
   buttonContainer: {
     position: 'absolute',
-    bottom: 100,
+    bottom: 80,
     width: '100%',
     paddingHorizontal: spacing.xl,
     alignItems: 'center',
   },
   listenButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: '#FF3B00',
     paddingVertical: spacing.md + 4,
     paddingHorizontal: spacing.xxl,
-    borderRadius: borderRadius.xl,
     width: '100%',
     alignItems: 'center',
-    marginBottom: spacing.md,
-    shadowColor: '#FF3B00',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 8,
+    marginBottom: spacing.lg,
   },
   listenButtonText: {
     color: '#FF3B00',
-    fontSize: fonts.sizes.xl,
+    fontSize: fonts.sizes.xxl,
     fontWeight: fonts.weights.heavy,
-    letterSpacing: 1,
+    textShadowColor: 'rgba(255, 59, 0, 0.6)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 12,
   },
-  enterButton: {
+  websiteButton: {
     paddingVertical: spacing.md + 4,
     paddingHorizontal: spacing.xxl,
-    borderRadius: borderRadius.xl,
     width: '100%',
     alignItems: 'center',
   },
-  enterButtonText: {
+  websiteButtonText: {
     color: '#FF6B00',
-    fontSize: fonts.sizes.lg,
-    fontWeight: fonts.weights.bold,
-    letterSpacing: 0.5,
+    fontSize: fonts.sizes.xxl,
+    fontWeight: fonts.weights.heavy,
+    textShadowColor: 'rgba(255, 107, 0, 0.6)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 12,
   },
 });
 
