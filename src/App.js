@@ -1,14 +1,23 @@
 import React, { useEffect } from 'react';
-import { SafeAreaView, StatusBar, StyleSheet } from 'react-native';
+import { SafeAreaView, StatusBar, StyleSheet, View } from 'react-native';
 import AppNavigator from './AppNavigator';
 import setupPlayer from './service';
+import DebugOverlay, { enableDebugLogging } from './components/DebugOverlay';
 import { colors } from './theme';
+
+// Enable debug logging early so all console output is captured
+enableDebugLogging();
 
 const App = () => {
   useEffect(() => {
-    setupPlayer().catch((error) => {
-      console.error('Error setting up TrackPlayer:', error);
-    });
+    console.log('App mounted — initializing TrackPlayer...');
+    setupPlayer()
+      .then(() => {
+        console.log('TrackPlayer setup complete');
+      })
+      .catch((error) => {
+        console.error('TrackPlayer setup failed:', error.message);
+      });
 
     return () => {
       // TrackPlayer cleanup handled by the service
@@ -16,10 +25,13 @@ const App = () => {
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
-      <AppNavigator />
-    </SafeAreaView>
+    <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+        <AppNavigator />
+      </SafeAreaView>
+      <DebugOverlay />
+    </View>
   );
 };
 
@@ -31,4 +43,3 @@ const styles = StyleSheet.create({
 });
 
 export default App;
-
