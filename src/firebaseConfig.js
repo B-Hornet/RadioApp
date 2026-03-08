@@ -1,9 +1,6 @@
 // Firebase configuration for LivestreamChat project
 // Project: LivestreamChat (livestreamchat-2d575)
 // App: reebootchat
-//
-// TODO: Fill in apiKey and appId from Firebase Console:
-//   Project Settings > General > Your apps > reebootchat > Config snippet
 import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
 import { getAuth } from 'firebase/auth';
