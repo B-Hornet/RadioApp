@@ -10,9 +10,22 @@ import {
   Platform,
   Animated,
 } from 'react-native';
-import { database } from '../firebaseConfig';
-import { ref, push, onValue, serverTimestamp, query, limitToLast } from 'firebase/database';
+import { db } from '../firebaseConfig';
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  limit,
+  serverTimestamp,
+  doc,
+  getDoc,
+} from 'firebase/firestore';
 import { colors, spacing, fonts, borderRadius } from '../theme';
+
+// Default chatroom ID — uses the first Chatroom or creates messages in a default room
+const CHATROOM_ID = 'reeboot-live';
 
 const CHAT_COLORS = [
   '#FF6B00', '#1DB954', '#FF3B5C', '#FFD60A',
@@ -53,38 +66,47 @@ const ChatRoom = () => {
   useEffect(() => {
     if (!isUsernameSet) return;
 
-    const messagesRef = query(ref(database, 'chatMessages'), limitToLast(100));
-    const unsubscribe = onValue(messagesRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const messageList = Object.entries(data).map(([key, value]) => ({
-          id: key,
-          ...value,
-        }));
-        setMessages(messageList);
+    // Listen to Messages collection, ordered by timestamp, last 100
+    const messagesQuery = query(
+      collection(db, 'Messages'),
+      orderBy('timestamp', 'asc'),
+      limit(100)
+    );
+    const unsubMessages = onSnapshot(messagesQuery, (snapshot) => {
+      const messageList = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+        timestamp: docSnap.data().timestamp?.toMillis?.() || null,
+      }));
+      setMessages(messageList);
+    });
+
+    // Listen to active listeners count from Chatrooms doc
+    const chatroomRef = doc(db, 'Chatrooms', CHATROOM_ID);
+    const unsubListeners = onSnapshot(chatroomRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const members = data.members;
+        setListenerCount(
+          Array.isArray(members) ? members.length : (typeof members === 'number' ? members : 0)
+        );
       }
     });
 
-    const listenersRef = ref(database, 'activeListeners');
-    const unsubListeners = onValue(listenersRef, (snapshot) => {
-      const data = snapshot.val();
-      setListenerCount(data ? Object.keys(data).length : 0);
-    });
-
     return () => {
-      unsubscribe();
+      unsubMessages();
       unsubListeners();
     };
   }, [isUsernameSet]);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!inputText.trim()) return;
 
-    const messagesRef = ref(database, 'chatMessages');
-    push(messagesRef, {
+    await addDoc(collection(db, 'Messages'), {
       text: inputText.trim(),
       username: username,
       timestamp: serverTimestamp(),
+      chatroomId: CHATROOM_ID,
       type: 'message',
     });
 

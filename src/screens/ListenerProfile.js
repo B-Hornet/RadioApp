@@ -6,8 +6,8 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import { database } from '../firebaseConfig';
-import { ref, onValue } from 'firebase/database';
+import { db } from '../firebaseConfig';
+import { collection, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
 import { colors, spacing, fonts, borderRadius } from '../theme';
 
 const BADGES = [
@@ -54,16 +54,17 @@ const ListenerProfile = () => {
   const [leaderboard, setLeaderboard] = useState([]);
 
   useEffect(() => {
-    const leaderboardRef = ref(database, 'leaderboard');
-    const unsubscribe = onValue(leaderboardRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const sorted = Object.entries(data)
-          .map(([key, value]) => ({ id: key, ...value }))
-          .sort((a, b) => (b.points || 0) - (a.points || 0))
-          .slice(0, 10);
-        setLeaderboard(sorted);
-      }
+    const leaderboardQuery = query(
+      collection(db, 'leaderboard'),
+      orderBy('points', 'desc'),
+      limit(10)
+    );
+    const unsubscribe = onSnapshot(leaderboardQuery, (snapshot) => {
+      const sorted = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      }));
+      setLeaderboard(sorted);
     });
 
     return () => unsubscribe();

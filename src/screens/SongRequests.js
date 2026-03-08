@@ -8,8 +8,18 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-import { database } from '../firebaseConfig';
-import { ref, push, onValue, serverTimestamp, query, orderByChild, update } from 'firebase/database';
+import { db } from '../firebaseConfig';
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  serverTimestamp,
+  doc,
+  updateDoc,
+  increment,
+} from 'firebase/firestore';
 import { colors, spacing, fonts, borderRadius } from '../theme';
 
 const SongRequests = () => {
@@ -20,30 +30,27 @@ const SongRequests = () => {
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    const requestsRef = query(ref(database, 'songRequests'), orderByChild('timestamp'));
-    const unsubscribe = onValue(requestsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const requestList = Object.entries(data)
-          .map(([key, value]) => ({ id: key, ...value }))
-          .sort((a, b) => (b.votes || 0) - (a.votes || 0));
-        setRequests(requestList);
-      } else {
-        setRequests([]);
-      }
+    const requestsQuery = query(
+      collection(db, 'songRequests'),
+      orderBy('timestamp', 'desc')
+    );
+    const unsubscribe = onSnapshot(requestsQuery, (snapshot) => {
+      const requestList = snapshot.docs
+        .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+        .sort((a, b) => (b.votes || 0) - (a.votes || 0));
+      setRequests(requestList);
     });
 
     return () => unsubscribe();
   }, []);
 
-  const submitRequest = () => {
+  const submitRequest = async () => {
     if (!songTitle.trim()) {
       Alert.alert('Missing Info', 'Please enter a song title.');
       return;
     }
 
-    const requestsRef = ref(database, 'songRequests');
-    push(requestsRef, {
+    await addDoc(collection(db, 'songRequests'), {
       songTitle: songTitle.trim(),
       artistName: artistName.trim(),
       requesterName: requesterName.trim() || 'Anonymous',
@@ -58,9 +65,9 @@ const SongRequests = () => {
     Alert.alert('Request Sent!', 'Your song request has been submitted to the DJ.');
   };
 
-  const voteForRequest = (requestId, currentVotes) => {
-    const requestRef = ref(database, `songRequests/${requestId}`);
-    update(requestRef, { votes: (currentVotes || 0) + 1 });
+  const voteForRequest = async (requestId) => {
+    const requestRef = doc(db, 'songRequests', requestId);
+    await updateDoc(requestRef, { votes: increment(1) });
   };
 
   const getStatusColor = (status) => {
@@ -97,7 +104,7 @@ const SongRequests = () => {
       </View>
       <TouchableOpacity
         style={styles.voteButton}
-        onPress={() => voteForRequest(item.id, item.votes)}
+        onPress={() => voteForRequest(item.id)}
       >
         <Text style={styles.voteArrow}>{'\u25B2'}</Text>
         <Text style={styles.voteCount}>{item.votes || 0}</Text>

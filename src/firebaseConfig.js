@@ -1,14 +1,14 @@
 // Firebase configuration for LivestreamChat project
 // Project: LivestreamChat (livestreamchat-2d575)
 // App: reebootchat
+// Using Cloud Firestore (existing collections: Chatrooms, Messages, Users)
 import { initializeApp } from 'firebase/app';
-import { getDatabase } from 'firebase/database';
+import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyABtGR_xpkhKskHPJ26_ViVmW_5pALYwp8',
   authDomain: 'livestreamchat-2d575.firebaseapp.com',
-  databaseURL: 'https://livestreamchat-2d575-default-rtdb.firebaseio.com',
   projectId: 'livestreamchat-2d575',
   storageBucket: 'livestreamchat-2d575.firebasestorage.app',
   messagingSenderId: '1087675450210',
@@ -17,8 +17,8 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
+const db = getFirestore(app);
 const auth = getAuth(app);
 
-export { app, database, auth };
+export { app, db, auth };
 

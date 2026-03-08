@@ -1,7 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Animated } from 'react-native';
-import { database } from '../firebaseConfig';
-import { ref, push, onValue, serverTimestamp, query, limitToLast } from 'firebase/database';
+import { db } from '../firebaseConfig';
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  limit,
+  serverTimestamp,
+  doc,
+  getDoc,
+  setDoc,
+  increment,
+} from 'firebase/firestore';
 import { colors, spacing, fonts, borderRadius } from '../theme';
 
 const REACTIONS = [
@@ -52,28 +64,33 @@ const LiveReactions = () => {
   const emojiIdRef = useRef(0);
 
   useEffect(() => {
-    const reactionsRef = query(ref(database, 'liveReactions'), limitToLast(1));
-    const unsubscribe = onValue(reactionsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const latestKey = Object.keys(data).pop();
-        const reaction = data[latestKey];
-        if (reaction && reaction.emoji) {
-          addFloatingEmoji(reaction.emoji);
+    // Listen for latest reactions
+    const reactionsQuery = query(
+      collection(db, 'liveReactions'),
+      orderBy('timestamp', 'desc'),
+      limit(1)
+    );
+    const unsubReactions = onSnapshot(reactionsQuery, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'added') {
+          const data = change.doc.data();
+          if (data && data.emoji) {
+            addFloatingEmoji(data.emoji);
+          }
         }
-      }
+      });
     });
 
-    const countsRef = ref(database, 'reactionCounts');
-    const unsubCounts = onValue(countsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        setReactionCounts(data);
+    // Listen for reaction counts
+    const countsRef = doc(db, 'appState', 'reactionCounts');
+    const unsubCounts = onSnapshot(countsRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setReactionCounts(docSnap.data());
       }
     });
 
     return () => {
-      unsubscribe();
+      unsubReactions();
       unsubCounts();
     };
   }, []);
@@ -87,13 +104,17 @@ const LiveReactions = () => {
     setFloatingEmojis((prev) => prev.filter((e) => e.id !== id));
   };
 
-  const sendReaction = (reaction) => {
-    const reactionsRef = ref(database, 'liveReactions');
-    push(reactionsRef, {
+  const sendReaction = async (reaction) => {
+    await addDoc(collection(db, 'liveReactions'), {
       emoji: reaction.emoji,
       reactionId: reaction.id,
       timestamp: serverTimestamp(),
     });
+
+    // Update counts
+    const countsRef = doc(db, 'appState', 'reactionCounts');
+    await setDoc(countsRef, { [reaction.id]: increment(1) }, { merge: true });
+
     addFloatingEmoji(reaction.emoji);
   };
 

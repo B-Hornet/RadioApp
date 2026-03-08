@@ -6,8 +6,8 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
-import { database } from '../firebaseConfig';
-import { ref, onValue } from 'firebase/database';
+import { db } from '../firebaseConfig';
+import { collection, doc, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { colors, spacing, fonts, borderRadius } from '../theme';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -25,21 +25,24 @@ const DJSchedule = () => {
   const [selectedDay, setSelectedDay] = useState(DAYS[new Date().getDay()]);
 
   useEffect(() => {
-    const scheduleRef = ref(database, 'djSchedule');
-    const unsubscribe = onValue(scheduleRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const scheduleList = Object.entries(data).map(([key, value]) => ({
-          id: key,
-          ...value,
+    const scheduleQuery = query(collection(db, 'djSchedule'), orderBy('day'));
+    const unsubscribe = onSnapshot(scheduleQuery, (snapshot) => {
+      if (!snapshot.empty) {
+        const scheduleList = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
         }));
         setSchedule(scheduleList);
       }
     });
 
-    const nowPlayingRef = ref(database, 'nowPlaying');
-    const unsubNowPlaying = onValue(nowPlayingRef, (snapshot) => {
-      setNowPlaying(snapshot.val());
+    const nowPlayingRef = doc(db, 'appState', 'nowPlaying');
+    const unsubNowPlaying = onSnapshot(nowPlayingRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setNowPlaying(docSnap.data());
+      } else {
+        setNowPlaying(null);
+      }
     });
 
     return () => {
