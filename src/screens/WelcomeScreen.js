@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
+import Video from 'react-native-video';
 import { spacing, fonts } from '../theme';
 
 const { width, height } = Dimensions.get('window');
@@ -16,6 +17,8 @@ const { width, height } = Dimensions.get('window');
 const WelcomeScreen = ({ navigation }) => {
   const buttonFade = useRef(new Animated.Value(0)).current;
   const logoFade = useRef(new Animated.Value(0)).current;
+  const [videoReady, setVideoReady] = useState(false);
+  const [videoError, setVideoError] = useState(false);
 
   useEffect(() => {
     Animated.sequence([
@@ -36,17 +39,36 @@ const WelcomeScreen = ({ navigation }) => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* Branding */}
-      <View style={styles.brandingContainer}>
-        <Animated.View style={[styles.logoContainer, { opacity: logoFade }]}>
-          <Image
-            source={require('../../assets/Images/reebologo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.tagline}>YOUR SOUND. YOUR STATION.</Text>
-        </Animated.View>
-      </View>
+      {/* Looping video background */}
+      {!videoError && (
+        <Video
+          source={require('../../assets/Images/Radio App Background.mp4')}
+          style={styles.backgroundVideo}
+          resizeMode="cover"
+          repeat={true}
+          muted={true}
+          playInBackground={false}
+          playWhenInactive={false}
+          disableFocus={true}
+          controls={false}
+          onLoad={() => setVideoReady(true)}
+          onError={() => setVideoError(true)}
+        />
+      )}
+
+      {/* Fallback branding when video fails or is loading */}
+      {!videoReady && (
+        <View style={styles.brandingContainer}>
+          <Animated.View style={[styles.logoContainer, { opacity: logoFade }]}>
+            <Image
+              source={require('../../assets/Images/reebologo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            <Text style={styles.tagline}>YOUR SOUND. YOUR STATION.</Text>
+          </Animated.View>
+        </View>
+      )}
 
       {/* Buttons at bottom */}
       <Animated.View style={[styles.buttonContainer, { opacity: buttonFade }]}>
@@ -75,8 +97,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000',
   },
+  backgroundVideo: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    width: width,
+    height: height,
+  },
   brandingContainer: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
   },
