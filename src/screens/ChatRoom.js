@@ -25,7 +25,7 @@ import {
 import { colors, spacing, fonts, borderRadius } from '../theme';
 
 // Default chatroom ID — uses the first Chatroom or creates messages in a default room
-const CHATROOM_ID = 'reeboot-live';
+const CHATROOM_ID = 'reebootlive';
 
 const CHAT_COLORS = [
   '#FF6B00', '#1DB954', '#FF3B5C', '#FFD60A',
