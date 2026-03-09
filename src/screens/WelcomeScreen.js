@@ -48,39 +48,36 @@ const WelcomeScreen = ({ navigation }) => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* Looping video background — the MP4 logo animation */}
+      {/* Fallback branding — always rendered as base layer */}
+      <View style={styles.brandingContainer}>
+        <Animated.View style={[styles.logoContainer, { opacity: logoFade }]}>
+          <Image
+            source={require('../../assets/Images/reebologo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.tagline}>YOUR SOUND. YOUR STATION.</Text>
+        </Animated.View>
+      </View>
+
+      {/* Looping video background — layered on top once ready */}
       {!videoError && (
         <Video
           source={require('../../assets/Radio App Background.mp4')}
-          style={styles.backgroundVideo}
+          style={[styles.backgroundVideo, !videoReady && { opacity: 0 }]}
           resizeMode="cover"
           repeat={true}
           muted={true}
           playInBackground={false}
           playWhenInactive={false}
-          disableFocus={true}
           controls={false}
-          onLoad={() => setVideoReady(true)}
+          onReadyForDisplay={() => setVideoReady(true)}
           onError={() => setVideoError(true)}
         />
       )}
 
       {/* Dark overlay to make buttons readable over video */}
       <View style={styles.videoOverlay} />
-
-      {/* Fallback branding when video fails or is loading */}
-      {!videoReady && (
-        <View style={styles.brandingContainer}>
-          <Animated.View style={[styles.logoContainer, { opacity: logoFade }]}>
-            <Image
-              source={require('../../assets/Images/reebologo.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={styles.tagline}>YOUR SOUND. YOUR STATION.</Text>
-          </Animated.View>
-        </View>
-      )}
 
       {/* Buttons at bottom — redesigned with solid styling */}
       <Animated.View

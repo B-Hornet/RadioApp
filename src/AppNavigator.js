@@ -27,6 +27,7 @@ const { width } = Dimensions.get('window');
 
 // Hub screen with branded navigation
 const HubScreen = ({ navigation }) => {
+  const [videoReady, setVideoReady] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
   return (
@@ -35,27 +36,28 @@ const HubScreen = ({ navigation }) => {
       contentContainerStyle={hubStyles.content}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header with animated MP4 logo (PNG fallback) */}
+      {/* Header with animated MP4 logo (PNG always visible underneath) */}
       <View style={hubStyles.header}>
         <View style={hubStyles.logoVideoContainer}>
-          {!videoError ? (
+          {/* PNG logo always rendered as base layer */}
+          <Image
+            source={require('../assets/Images/reebologo.png')}
+            style={hubStyles.logoFallback}
+            resizeMode="cover"
+          />
+          {/* Video layered on top once ready */}
+          {!videoError && (
             <Video
               source={require('../assets/Radio App Background.mp4')}
-              style={hubStyles.logoVideo}
+              style={[hubStyles.logoVideo, !videoReady && { opacity: 0 }]}
               resizeMode="cover"
               repeat={true}
               muted={true}
               playInBackground={false}
               playWhenInactive={false}
-              disableFocus={true}
               controls={false}
+              onReadyForDisplay={() => setVideoReady(true)}
               onError={() => setVideoError(true)}
-            />
-          ) : (
-            <Image
-              source={require('../assets/Images/reebologo.png')}
-              style={hubStyles.logoVideo}
-              resizeMode="cover"
             />
           )}
         </View>
@@ -177,7 +179,14 @@ const hubStyles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 10,
   },
+  logoFallback: {
+    width: 140,
+    height: 140,
+  },
   logoVideo: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
     width: 140,
     height: 140,
   },
