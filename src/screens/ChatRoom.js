@@ -22,6 +22,10 @@ import {
   limit,
   serverTimestamp,
   doc,
+  updateDoc,
+  where,
+  getDocs,
+  Timestamp,
 } from 'firebase/firestore';
 import { colors, spacing, fonts, borderRadius } from '../theme';
 import { CHATROOM_ID, CHAT_COLORS, MESSAGE_LIMIT } from '../constants';
@@ -48,8 +52,12 @@ const ChatRoom = () => {
   const [listenerCount, setListenerCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [pinnedMessage, setPinnedMessage] = useState(null);
+  const [pinnedBannerDismissed, setPinnedBannerDismissed] = useState(false);
   const flatListRef = useRef(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const mountedRef = useRef(true);
+  const pinExpiryTimerRef = useRef(null);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -57,6 +65,13 @@ const ChatRoom = () => {
       duration: 500,
       useNativeDriver: true,
     }).start();
+
+    return () => {
+      mountedRef.current = false;
+      if (pinExpiryTimerRef.current) {
+        clearTimeout(pinExpiryTimerRef.current);
+      }
+    };
   }, [fadeAnim]);
 
   useEffect(() => {
@@ -72,12 +87,26 @@ const ChatRoom = () => {
     const unsubMessages = onSnapshot(
       messagesQuery,
       (snapshot) => {
-        const messageList = snapshot.docs.map((docSnap) => ({
-          id: docSnap.id,
-          ...docSnap.data(),
-          timestamp: docSnap.data().timestamp?.toMillis?.() || null,
-        }));
+        const messageList = snapshot.docs.map((docSnap) => {
+          const data = docSnap.data();
+          return {
+            id: docSnap.id,
+            ...data,
+            timestamp: data.timestamp?.toMillis?.() || null,
+            isPinned: data.isPinned || false,
+            pinnedBy: data.pinnedBy || null,
+            pinnedAt: data.pinnedAt?.toMillis?.() || null,
+            pinExpiresAt: data.pinExpiresAt?.toMillis?.() || null,
+          };
+        });
         setMessages(messageList);
+
+        // Detect pinned message
+        const pinned = messageList.find((m) => m.isPinned);
+        setPinnedMessage(pinned || null);
+        setPinnedBannerDismissed(false);
+        checkPinExpiry(pinned || null);
+
         setIsLoading(false);
       },
       (error) => {
@@ -131,6 +160,105 @@ const ChatRoom = () => {
     }
   }, [inputText, isSending, username]);
 
+  const checkPinExpiry = useCallback((pinMsg) => {
+    if (pinExpiryTimerRef.current) {
+      clearTimeout(pinExpiryTimerRef.current);
+      pinExpiryTimerRef.current = null;
+    }
+    if (!pinMsg || !pinMsg.pinExpiresAt) return;
+
+    const remaining = pinMsg.pinExpiresAt - Date.now();
+    if (remaining <= 0) {
+      unpinMessage(pinMsg.id);
+    } else {
+      pinExpiryTimerRef.current = setTimeout(() => {
+        if (mountedRef.current) {
+          unpinMessage(pinMsg.id);
+        }
+      }, remaining);
+    }
+  }, []);
+
+  const pinMessage = useCallback(async (message, durationMinutes = 10) => {
+    if (!username) return;
+
+    try {
+      const messagesRef = collection(db, 'Messages');
+
+      // Unpin any currently pinned messages
+      const pinnedQuery = query(messagesRef, where('isPinned', '==', true));
+      const pinnedSnapshot = await getDocs(pinnedQuery);
+      if (!mountedRef.current) return;
+
+      for (const docSnap of pinnedSnapshot.docs) {
+        await updateDoc(docSnap.ref, {
+          isPinned: false,
+          pinnedBy: null,
+          pinnedAt: null,
+          pinExpiresAt: null,
+        });
+        if (!mountedRef.current) return;
+      }
+
+      // Pin the new message
+      const pinData = {
+        isPinned: true,
+        pinnedBy: username,
+        pinnedAt: serverTimestamp(),
+        pinExpiresAt: durationMinutes > 0
+          ? Timestamp.fromDate(new Date(Date.now() + durationMinutes * 60 * 1000))
+          : null,
+      };
+      await updateDoc(doc(db, 'Messages', message.id), pinData);
+      if (!mountedRef.current) return;
+    } catch (error) {
+      console.error('Pin message error:', error);
+      if (!mountedRef.current) return;
+      Alert.alert('Pin Failed', 'Could not pin message. Please try again.');
+    }
+  }, [username]);
+
+  const unpinMessage = useCallback(async (messageId) => {
+    if (!username) return;
+
+    try {
+      await updateDoc(doc(db, 'Messages', messageId), {
+        isPinned: false,
+        pinnedBy: null,
+        pinnedAt: null,
+        pinExpiresAt: null,
+      });
+      if (!mountedRef.current) return;
+    } catch (error) {
+      console.error('Unpin message error:', error);
+      if (!mountedRef.current) return;
+      Alert.alert('Unpin Failed', 'Could not unpin message. Please try again.');
+    }
+  }, [username]);
+
+  const handleLongPressMessage = useCallback((message) => {
+    const isPinned = message.isPinned;
+    const options = isPinned
+      ? [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Unpin Message', style: 'destructive', onPress: () => unpinMessage(message.id) },
+        ]
+      : [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Pin for 10 min', onPress: () => pinMessage(message, 10) },
+          { text: 'Pin for 30 min', onPress: () => pinMessage(message, 30) },
+          { text: 'Pin (no expiry)', onPress: () => pinMessage(message, 0) },
+        ];
+
+    Alert.alert(
+      isPinned ? 'Unpin Message' : 'Pin Message',
+      isPinned
+        ? 'Remove this pinned message?'
+        : `Pin "${message.text.substring(0, 50)}${message.text.length > 50 ? '...' : ''}" to the top of chat?`,
+      options
+    );
+  }, [pinMessage, unpinMessage]);
+
   const handleSetUsername = () => {
     if (username.trim().length >= 2) {
       setIsUsernameSet(true);
@@ -179,13 +307,22 @@ const ChatRoom = () => {
     const userColor = getColorForUser(item.username);
 
     return (
-      <View style={[styles.messageRow, isOwnMessage && styles.messageRowOwn]}>
+      <TouchableOpacity
+        style={[styles.messageRow, isOwnMessage && styles.messageRowOwn]}
+        onLongPress={() => handleLongPressMessage(item)}
+        activeOpacity={0.8}
+        delayLongPress={500}
+      >
         <View
           style={[
             styles.messageBubble,
             isOwnMessage ? styles.messageBubbleOwn : styles.messageBubbleOther,
+            item.isPinned && styles.messageBubblePinned,
           ]}
         >
+          {item.isPinned && (
+            <Text style={styles.pinIndicator}>{'\uD83D\uDCCC'} Pinned</Text>
+          )}
           {!isOwnMessage && (
             <Text style={[styles.messageUsername, { color: userColor }]}>
               {item.username}
@@ -194,7 +331,7 @@ const ChatRoom = () => {
           <Text style={styles.messageText}>{item.text}</Text>
           <Text style={styles.messageTime}>{formatTime(item.timestamp)}</Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -214,6 +351,29 @@ const ChatRoom = () => {
           {listenerCount} listener{listenerCount !== 1 ? 's' : ''} online
         </Text>
       </View>
+
+      {/* Pinned message banner */}
+      {pinnedMessage && !pinnedBannerDismissed && (
+        <View style={styles.pinnedBanner}>
+          <Text style={styles.pinnedBannerIcon}>{'\uD83D\uDCCC'}</Text>
+          <View style={styles.pinnedBannerContent}>
+            <Text style={styles.pinnedBannerUsername} numberOfLines={1}>
+              {pinnedMessage.username}
+            </Text>
+            <Text style={styles.pinnedBannerText} numberOfLines={1}>
+              {pinnedMessage.text}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.pinnedBannerClose}
+            onPress={() => setPinnedBannerDismissed(true)}
+            accessibilityLabel="Dismiss pinned message"
+            accessibilityRole="button"
+          >
+            <Text style={styles.pinnedBannerCloseText}>{'\u2715'}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Messages list */}
       {isLoading ? (
@@ -425,6 +585,59 @@ const styles = StyleSheet.create({
     fontSize: fonts.sizes.xs,
     alignSelf: 'flex-end',
     marginTop: 2,
+  },
+  // Pinned banner
+  pinnedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.primary,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
+  },
+  pinnedBannerIcon: {
+    fontSize: 16,
+    marginRight: spacing.sm,
+  },
+  pinnedBannerContent: {
+    flex: 1,
+  },
+  pinnedBannerUsername: {
+    fontSize: fonts.sizes.xs,
+    fontWeight: fonts.weights.bold,
+    color: colors.primary,
+  },
+  pinnedBannerText: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textSecondary,
+    marginTop: 1,
+  },
+  pinnedBannerClose: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.surfaceLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: spacing.sm,
+  },
+  pinnedBannerCloseText: {
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+  // Pinned message indicator on bubble
+  messageBubblePinned: {
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  pinIndicator: {
+    fontSize: fonts.sizes.xs,
+    color: colors.primary,
+    fontWeight: fonts.weights.semibold,
+    marginBottom: 2,
   },
   // Input
   inputContainer: {
