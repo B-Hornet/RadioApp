@@ -20,6 +20,7 @@ import SongRequests from './screens/SongRequests';
 import DJSchedule from './screens/DJSchedule';
 import ListenerProfile from './screens/ListenerProfile';
 import MerchShop from './screens/MerchShop';
+import ModControlRoom from './screens/ModControlRoom';
 
 const Stack = createStackNavigator();
 const { width } = Dimensions.get('window');
@@ -114,6 +115,15 @@ const HubScreen = ({ navigation }) => {
         >
           <Text style={hubStyles.tileIcon}>{'\uD83D\uDECD\uFE0F'}</Text>
           <Text style={hubStyles.tileLabel}>Merch Shop</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={hubStyles.tile}
+          onPress={() => navigation.navigate('ModControlRoom')}
+          activeOpacity={0.7}
+        >
+          <Text style={hubStyles.tileIcon}>{'\uD83D\uDEE1\uFE0F'}</Text>
+          <Text style={hubStyles.tileLabel}>Mod Control</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -359,6 +369,11 @@ const AppNavigator = () => {
           name="MerchShop"
           component={MerchShop}
           options={{ title: 'Merch Shop' }}
+        />
+        <Stack.Screen
+          name="ModControlRoom"
+          component={ModControlRoom}
+          options={{ title: 'Mod Control Room' }}
         />
       </Stack.Navigator>
     </NavigationContainer>
