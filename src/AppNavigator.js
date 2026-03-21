@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Text,
   View,
@@ -7,10 +7,14 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { colors, fonts, spacing, borderRadius } from './theme';
+import { auth, db } from './firebaseConfig';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
 // Screens
 import WelcomeScreen from './screens/WelcomeScreen';
@@ -20,6 +24,9 @@ import SongRequests from './screens/SongRequests';
 import DJSchedule from './screens/DJSchedule';
 import ListenerProfile from './screens/ListenerProfile';
 import MerchShop from './screens/MerchShop';
+import UsernameSetupScreen from './screens/UsernameSetupScreen';
+
+const AUTO_USERNAME_PATTERN = /^user[a-z0-9]{4,10}$/;
 
 const Stack = createStackNavigator();
 const { width } = Dimensions.get('window');
@@ -298,17 +305,65 @@ const defaultScreenOptions = {
   },
 };
 
+const needsUsernameSetup = (username) => {
+  if (!username || username.trim() === '') return true;
+  return AUTO_USERNAME_PATTERN.test(username.toLowerCase());
+};
+
 const AppNavigator = () => {
+  const [authChecked, setAuthChecked] = useState(false);
+  const [initialRoute, setInitialRoute] = useState('Welcome');
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const userDoc = await getDoc(doc(db, 'Users', user.uid));
+          const data = userDoc.exists() ? userDoc.data() : {};
+          if (needsUsernameSetup(data.username)) {
+            setInitialRoute('UsernameSetup');
+          } else {
+            setInitialRoute('Home');
+          }
+        } catch (err) {
+          console.error('Error checking username:', err);
+          setInitialRoute('Home');
+        }
+      } else {
+        setInitialRoute('Welcome');
+      }
+      setAuthChecked(true);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (!authChecked) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#081425', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#3F8CFF" />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Welcome"
+        initialRouteName={initialRoute}
         screenOptions={defaultScreenOptions}
       >
         <Stack.Screen
           name="Welcome"
           component={WelcomeScreen}
           options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="UsernameSetup"
+          component={UsernameSetupScreen}
+          options={{
+            headerShown: false,
+            gestureEnabled: false,
+          }}
         />
         <Stack.Screen
           name="Home"

@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { db } from '../firebaseConfig';
+import { db, auth } from '../firebaseConfig';
 import {
   collection,
   addDoc,
@@ -22,6 +22,7 @@ import {
   limit,
   serverTimestamp,
   doc,
+  getDoc,
 } from 'firebase/firestore';
 import { colors, spacing, fonts, borderRadius } from '../theme';
 import { CHATROOM_ID, CHAT_COLORS, MESSAGE_LIMIT } from '../constants';
@@ -40,6 +41,8 @@ const formatTime = (timestamp) => {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
+const AUTO_USERNAME_PATTERN = /^user[a-z0-9]{4,10}$/;
+
 const ChatRoom = () => {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -50,6 +53,24 @@ const ChatRoom = () => {
   const [isSending, setIsSending] = useState(false);
   const flatListRef = useRef(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Auto-set username from Firestore if user is authenticated with a real username
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (user) {
+      getDoc(doc(db, 'Users', user.uid))
+        .then((userDoc) => {
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            if (data.username && !AUTO_USERNAME_PATTERN.test(data.username.toLowerCase())) {
+              setUsername(data.username);
+              setIsUsernameSet(true);
+            }
+          }
+        })
+        .catch((err) => console.error('Error fetching username:', err));
+    }
+  }, []);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
