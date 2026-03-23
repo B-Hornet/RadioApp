@@ -1,6 +1,11 @@
 const path = require('path');
 
 module.exports = {
+  project: {
+    ios: {},
+    android: {},
+  },
+  assets: ['./assets/fonts'],
   dependencies: {
     'react-native-gesture-handler': {
       root: path.resolve(__dirname, 'node_modules/react-native-gesture-handler'),
