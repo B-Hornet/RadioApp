@@ -1,8 +1,67 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, Animated, Alert } from 'react-native';
 import TrackPlayer, { usePlaybackState, State } from 'react-native-track-player';
 import LiveReactions from './LiveReactions';
 import { colors, spacing, fonts, borderRadius } from '../theme';
+
+const BreathingGlow = ({ isActive }) => {
+  const glow1 = useRef(new Animated.Value(0.8)).current;
+  const glow2 = useRef(new Animated.Value(0.6)).current;
+  const glow3 = useRef(new Animated.Value(0.7)).current;
+
+  useEffect(() => {
+    if (!isActive) {
+      glow1.setValue(0.8);
+      glow2.setValue(0.6);
+      glow3.setValue(0.7);
+      return;
+    }
+
+    const makeLoop = (anim, from, to, duration) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(anim, { toValue: to, duration, useNativeDriver: true }),
+          Animated.timing(anim, { toValue: from, duration, useNativeDriver: true }),
+        ])
+      );
+
+    const a1 = makeLoop(glow1, 0.8, 1.2, 3000);
+    const a2 = makeLoop(glow2, 0.6, 1.1, 3800);
+    const a3 = makeLoop(glow3, 0.7, 1.15, 2600);
+    a1.start();
+    a2.start();
+    a3.start();
+
+    return () => { a1.stop(); a2.stop(); a3.stop(); };
+  }, [isActive]);
+
+  if (!isActive) return null;
+
+  return (
+    <View style={styles.breathingContainer}>
+      <Animated.View style={[styles.breathCircle, styles.breathCircle1, { transform: [{ scale: glow1 }] }]} />
+      <Animated.View style={[styles.breathCircle, styles.breathCircle2, { transform: [{ scale: glow2 }] }]} />
+      <Animated.View style={[styles.breathCircle, styles.breathCircle3, { transform: [{ scale: glow3 }] }]} />
+    </View>
+  );
+};
+
+const VisualizerBars = React.memo(({ count = 24 }) => (
+  <View style={styles.visualizer}>
+    {[...Array(count)].map((_, i) => (
+      <View
+        key={i}
+        style={[
+          styles.visualizerBar,
+          {
+            height: 8 + Math.random() * 24,
+            backgroundColor: i % 3 === 0 ? colors.primary : colors.primaryLight,
+          },
+        ]}
+      />
+    ))}
+  </View>
+));
 
 const RadioPlayer = () => {
   const playbackState = usePlaybackState();
@@ -50,6 +109,9 @@ const RadioPlayer = () => {
 
   return (
     <View style={styles.container}>
+      {/* Ambient breathing glow */}
+      <BreathingGlow isActive={isPlaying} />
+
       {/* Station artwork */}
       <View style={styles.artworkContainer}>
         <Animated.View
@@ -93,23 +155,8 @@ const RadioPlayer = () => {
         </Text>
       </TouchableOpacity>
 
-      {/* Audio visualizer placeholder */}
-      {isPlaying && (
-        <View style={styles.visualizer}>
-          {[...Array(12)].map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.visualizerBar,
-                {
-                  height: 8 + Math.random() * 24,
-                  backgroundColor: i % 3 === 0 ? colors.primary : colors.primaryLight,
-                },
-              ]}
-            />
-          ))}
-        </View>
-      )}
+      {/* Audio visualizer */}
+      {isPlaying && <VisualizerBars count={24} />}
 
       {/* Live Reactions overlay */}
       <LiveReactions />
@@ -124,6 +171,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
+    overflow: 'hidden',
+  },
+  breathingContainer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  breathCircle: {
+    position: 'absolute',
+    borderRadius: 999,
+  },
+  breathCircle1: {
+    width: 300,
+    height: 300,
+    backgroundColor: colors.primary,
+    opacity: 0.06,
+  },
+  breathCircle2: {
+    width: 220,
+    height: 220,
+    backgroundColor: colors.primaryLight,
+    opacity: 0.08,
+  },
+  breathCircle3: {
+    width: 160,
+    height: 160,
+    backgroundColor: colors.secondary,
+    opacity: 0.05,
   },
   artworkContainer: {
     width: 200,

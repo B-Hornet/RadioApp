@@ -40,6 +40,51 @@ const formatTime = (timestamp) => {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
+const ENTRANCE_ANIM_CAP = 8;
+
+const ChatBubble = React.memo(({ item, isOwn, shouldAnimate }) => {
+  const userColor = getColorForUser(item.username);
+  const slideAnim = useRef(new Animated.Value(shouldAnimate ? 0 : 1)).current;
+
+  useEffect(() => {
+    if (shouldAnimate) {
+      Animated.timing(slideAnim, {
+        toValue: 1,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, []);
+
+  return (
+    <Animated.View
+      style={[
+        styles.messageRow,
+        isOwn && styles.messageRowOwn,
+        shouldAnimate && {
+          opacity: slideAnim,
+          transform: [{ translateY: slideAnim.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }],
+        },
+      ]}
+    >
+      <View
+        style={[
+          styles.messageBubble,
+          isOwn ? styles.messageBubbleOwn : styles.messageBubbleOther,
+        ]}
+      >
+        {!isOwn && (
+          <Text style={[styles.messageUsername, { color: userColor }]}>
+            {item.username}
+          </Text>
+        )}
+        <Text style={styles.messageText}>{item.text}</Text>
+        <Text style={styles.messageTime}>{formatTime(item.timestamp)}</Text>
+      </View>
+    </Animated.View>
+  );
+});
+
 const ChatRoom = () => {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -174,27 +219,16 @@ const ChatRoom = () => {
     );
   }
 
-  const renderMessage = ({ item }) => {
+  const renderMessage = ({ item, index }) => {
     const isOwnMessage = item.username === username;
-    const userColor = getColorForUser(item.username);
+    const shouldAnimate = index >= messages.length - ENTRANCE_ANIM_CAP;
 
     return (
-      <View style={[styles.messageRow, isOwnMessage && styles.messageRowOwn]}>
-        <View
-          style={[
-            styles.messageBubble,
-            isOwnMessage ? styles.messageBubbleOwn : styles.messageBubbleOther,
-          ]}
-        >
-          {!isOwnMessage && (
-            <Text style={[styles.messageUsername, { color: userColor }]}>
-              {item.username}
-            </Text>
-          )}
-          <Text style={styles.messageText}>{item.text}</Text>
-          <Text style={styles.messageTime}>{formatTime(item.timestamp)}</Text>
-        </View>
-      </View>
+      <ChatBubble
+        item={item}
+        isOwn={isOwnMessage}
+        shouldAnimate={shouldAnimate}
+      />
     );
   };
 

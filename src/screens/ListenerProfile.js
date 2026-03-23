@@ -232,9 +232,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     paddingHorizontal: spacing.md,
     marginBottom: spacing.md,
+    gap: spacing.sm,
   },
   statCard: {
-    width: '50%',
+    flex: 1,
+    flexBasis: '45%',
     padding: spacing.sm,
   },
   statCardInner: {
@@ -321,9 +323,11 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     paddingHorizontal: spacing.md,
     marginBottom: spacing.lg,
+    gap: spacing.xs,
   },
   badgeItem: {
-    width: '33.33%',
+    flex: 1,
+    flexBasis: '30%',
     padding: spacing.xs,
     alignItems: 'center',
   },

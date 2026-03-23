@@ -20,13 +20,29 @@ import SongRequests from './screens/SongRequests';
 import DJSchedule from './screens/DJSchedule';
 import ListenerProfile from './screens/ListenerProfile';
 import MerchShop from './screens/MerchShop';
+import MiniPlayer from './components/MiniPlayer';
 
 const Stack = createStackNavigator();
 const { width } = Dimensions.get('window');
 
+const NavItem = React.memo(
+  ({ icon, label, onPress }) => (
+    <TouchableOpacity
+      style={hubStyles.tile}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <Text style={hubStyles.tileIcon}>{icon}</Text>
+      <Text style={hubStyles.tileLabel}>{label}</Text>
+    </TouchableOpacity>
+  ),
+  (prev, next) => prev.label === next.label && prev.icon === next.icon
+);
+
 // Hub screen with branded navigation
 const HubScreen = ({ navigation }) => {
   return (
+    <View style={hubStyles.root}>
     <ScrollView
       style={hubStyles.container}
       contentContainerStyle={hubStyles.content}
@@ -80,47 +96,38 @@ const HubScreen = ({ navigation }) => {
 
       {/* Grid tiles */}
       <View style={hubStyles.grid}>
-        <TouchableOpacity
-          style={hubStyles.tile}
+        <NavItem
+          icon={'\uD83C\uDFA4'}
+          label="Song Requests"
           onPress={() => navigation.navigate('SongRequests')}
-          activeOpacity={0.7}
-        >
-          <Text style={hubStyles.tileIcon}>{'\uD83C\uDFA4'}</Text>
-          <Text style={hubStyles.tileLabel}>Song Requests</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={hubStyles.tile}
+        />
+        <NavItem
+          icon={'\uD83D\uDCC5'}
+          label="DJ Schedule"
           onPress={() => navigation.navigate('DJSchedule')}
-          activeOpacity={0.7}
-        >
-          <Text style={hubStyles.tileIcon}>{'\uD83D\uDCC5'}</Text>
-          <Text style={hubStyles.tileLabel}>DJ Schedule</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={hubStyles.tile}
+        />
+        <NavItem
+          icon={'\uD83D\uDC64'}
+          label="My Profile"
           onPress={() => navigation.navigate('ListenerProfile')}
-          activeOpacity={0.7}
-        >
-          <Text style={hubStyles.tileIcon}>{'\uD83D\uDC64'}</Text>
-          <Text style={hubStyles.tileLabel}>My Profile</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={hubStyles.tile}
+        />
+        <NavItem
+          icon={'\uD83D\uDECD\uFE0F'}
+          label="Merch Shop"
           onPress={() => navigation.navigate('MerchShop')}
-          activeOpacity={0.7}
-        >
-          <Text style={hubStyles.tileIcon}>{'\uD83D\uDECD\uFE0F'}</Text>
-          <Text style={hubStyles.tileLabel}>Merch Shop</Text>
-        </TouchableOpacity>
+        />
       </View>
     </ScrollView>
+    <MiniPlayer onPress={() => navigation.navigate('RadioPlayer')} />
+    </View>
   );
 };
 
 const hubStyles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
   container: {
     flex: 1,
     backgroundColor: '#000000',
@@ -260,14 +267,14 @@ const hubStyles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: -spacing.xs,
+    gap: spacing.sm,
   },
   tile: {
-    width: '47%',
+    flex: 1,
+    flexBasis: '45%',
     backgroundColor: '#111111',
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
-    margin: '1.5%',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#2D2D2D',
