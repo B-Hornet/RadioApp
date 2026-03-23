@@ -10,6 +10,8 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		478C3763C1ED4E17B6C8F760 /* libPods-ReebootRadioApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DA17ABEC4F43D2453D59B34 /* libPods-ReebootRadioApp.a */; };
+		797EB2EAC974F65D961B9E41 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B0A76422759172AB4A586ECE /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,6 +21,10 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = ReebootRadioApp/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ReebootRadioApp/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ReebootRadioApp/main.m; sourceTree = "<group>"; };
+		2DA17ABEC4F43D2453D59B34 /* libPods-ReebootRadioApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ReebootRadioApp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		587F3FBA6DDA2ABCAF563363 /* Pods-ReebootRadioApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReebootRadioApp.debug.xcconfig"; path = "Target Support Files/Pods-ReebootRadioApp/Pods-ReebootRadioApp.debug.xcconfig"; sourceTree = "<group>"; };
+		A1E1903F3B6E48F052071501 /* Pods-ReebootRadioApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReebootRadioApp.release.xcconfig"; path = "Target Support Files/Pods-ReebootRadioApp/Pods-ReebootRadioApp.release.xcconfig"; sourceTree = "<group>"; };
+		B0A76422759172AB4A586ECE /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = ReebootRadioApp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -27,6 +33,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				478C3763C1ED4E17B6C8F760 /* libPods-ReebootRadioApp.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -41,6 +48,7 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				13B07FB71A68108700A75B9A /* main.m */,
+				B0A76422759172AB4A586ECE /* PrivacyInfo.xcprivacy */,
 			);
 			name = ReebootRadioApp;
 			sourceTree = "<group>";
@@ -49,8 +57,19 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
+				2DA17ABEC4F43D2453D59B34 /* libPods-ReebootRadioApp.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		375FC4CDAE3214CAECBE2973 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				587F3FBA6DDA2ABCAF563363 /* Pods-ReebootRadioApp.debug.xcconfig */,
+				A1E1903F3B6E48F052071501 /* Pods-ReebootRadioApp.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -67,6 +86,7 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
+				375FC4CDAE3214CAECBE2973 /* Pods */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -142,6 +162,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				797EB2EAC974F65D961B9E41 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -237,11 +258,13 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 587F3FBA6DDA2ABCAF563363 /* Pods-ReebootRadioApp.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = H2RSJ22244;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = ReebootRadioApp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -254,7 +277,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.reebootradio.app";
+				PRODUCT_BUNDLE_IDENTIFIER = com.reebootradio.app;
 				PRODUCT_NAME = ReebootRadioApp;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -264,11 +287,13 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A1E1903F3B6E48F052071501 /* Pods-ReebootRadioApp.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = H2RSJ22244;
 				INFOPLIST_FILE = ReebootRadioApp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -280,7 +305,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.reebootradio.app";
+				PRODUCT_BUNDLE_IDENTIFIER = com.reebootradio.app;
 				PRODUCT_NAME = ReebootRadioApp;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -364,8 +389,9 @@
 					"$(inherited)",
 					" ",
 				);
-				REACT_NATIVE_PATH = "${PODS_ROOT}/../node_modules/react-native";
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				USE_HERMES = true;
 			};
 			name = Debug;
@@ -439,7 +465,7 @@
 					"$(inherited)",
 					" ",
 				);
-				REACT_NATIVE_PATH = "${PODS_ROOT}/../node_modules/react-native";
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
 				VALIDATE_PRODUCT = YES;

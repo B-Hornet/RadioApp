@@ -12,6 +12,7 @@ module.exports = {
         corejs: false  // Avoids unwanted polyfills
       },
     ],
+    'react-native-reanimated/plugin', // must be last
   ],
   env: {
     production: {

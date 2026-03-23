@@ -10,7 +10,7 @@ const setupPlayer = async () => {
     id: 'reeboot-live',
     url: STREAM_URL,
     title: 'Reeboot Radio Live',
-    artist: 'Reeboot Radio',
+    artist: 'Your Sound. Your Station.',
     artwork: require('../assets/Images/reebologo.png'),
     isLiveStream: true,
   });
