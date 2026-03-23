@@ -12,7 +12,16 @@
 
 import React from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 import { colors, radius, elevation } from '../theme/tokens';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+const PRESS_SPRING = { damping: 15, stiffness: 200 };
 
 export default function Glass({
   children,
@@ -22,35 +31,55 @@ export default function Glass({
   onPress,
   disabled = false,
 }) {
-  const Wrapper = onPress ? Pressable : View;
-  const wrapperProps = onPress
-    ? {
-        onPress,
-        disabled,
-        style: ({ pressed }) => [
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.98, PRESS_SPRING);
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, PRESS_SPRING);
+  };
+
+  if (onPress) {
+    return (
+      <AnimatedPressable
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={disabled}
+        style={[
           styles.base,
           accent ? styles.accent : styles.default,
           glow && styles.glow,
-          pressed && styles.pressed,
           disabled && styles.disabled,
           style,
-        ],
-      }
-    : {
-        style: [
-          styles.base,
-          accent ? styles.accent : styles.default,
-          glow && styles.glow,
-          disabled && styles.disabled,
-          style,
-        ],
-      };
+          animatedStyle,
+        ]}
+      >
+        {glow && <View style={styles.glowOrb} />}
+        {children}
+      </AnimatedPressable>
+    );
+  }
 
   return (
-    <Wrapper {...wrapperProps}>
+    <View
+      style={[
+        styles.base,
+        accent ? styles.accent : styles.default,
+        glow && styles.glow,
+        disabled && styles.disabled,
+        style,
+      ]}
+    >
       {glow && <View style={styles.glowOrb} />}
       {children}
-    </Wrapper>
+    </View>
   );
 }
 
@@ -71,10 +100,6 @@ const styles = StyleSheet.create({
   },
   glow: {
     ...elevation.glow(colors.primaryGlow),
-  },
-  pressed: {
-    backgroundColor: colors.glassHover,
-    transform: [{ scale: 0.98 }],
   },
   disabled: {
     opacity: 0.4,

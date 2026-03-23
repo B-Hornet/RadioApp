@@ -95,7 +95,7 @@ export default function StudioLogo({
     transform: [{ scale: interpolate(ringPulse.value, [0, 1], [1, 1.06]) }],
   }));
 
-  const showVideo = !videoError && !mini && size >= 60;
+  const showVideo = !videoError && !mini && size >= 100;
 
   return (
     <View style={[styles.wrapper, { width: size + 20, height: size + 20 }]}>
