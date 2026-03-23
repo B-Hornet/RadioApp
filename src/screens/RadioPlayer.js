@@ -13,7 +13,7 @@
  * This replaces the old RadioPlayer.js + LiveReactions.js
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -30,6 +30,7 @@ import Animated, {
   SlideInUp,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import TrackPlayer, { usePlaybackState, State } from 'react-native-track-player';
 import { colors, typography, spacing, elevation } from '../theme/tokens';
 import Glass from '../components/Glass';
 import StudioLogo from '../components/StudioLogo';
@@ -87,13 +88,17 @@ const ControlButton = ({ icon, onPress, size = 44 }) => (
 // ═══════════════════════════════════════════════════════════
 
 export default function RadioPlayer({ navigation, route }) {
-  const [isPlaying, setIsPlaying] = useState(true);
+  const { state: playbackState } = usePlaybackState();
+  const isPlaying = playbackState === State.Playing;
   const isLive = route?.params?.isLive ?? true;
 
-  // TODO: Connect to your actual audio streaming service
-  const togglePlayback = useCallback(() => {
-    setIsPlaying((prev) => !prev);
-  }, []);
+  const togglePlayback = useCallback(async () => {
+    if (isPlaying) {
+      await TrackPlayer.pause();
+    } else {
+      await TrackPlayer.play();
+    }
+  }, [isPlaying]);
 
   return (
     <View style={styles.screen}>

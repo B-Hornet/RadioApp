@@ -6,12 +6,11 @@ import LiveReactions from './LiveReactions';
 import { colors, spacing, fonts, borderRadius } from '../theme';
 
 const RadioPlayer = () => {
-  const playbackState = usePlaybackState();
+  const { state: playbackState } = usePlaybackState();
   const [isPlaying, setIsPlaying] = useState(false);
   const pulseAnim = useState(new Animated.Value(1))[0];
 
-  const isCurrentlyPlaying =
-    playbackState === State.Playing || playbackState?.state === State.Playing;
+  const isCurrentlyPlaying = playbackState === State.Playing;
 
   useEffect(() => {
     setIsPlaying(isCurrentlyPlaying);

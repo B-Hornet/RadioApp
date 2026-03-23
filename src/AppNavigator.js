@@ -25,6 +25,7 @@ import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import TrackPlayer, { usePlaybackState, State } from 'react-native-track-player';
 import { colors } from './theme/tokens';
 
 // Screens
@@ -66,10 +67,16 @@ function AppContent({ navigationRef }) {
     navigationRef.current?.navigate(route);
   }, [navigationRef]);
 
-  // TODO: Connect to your actual stream state / audio player
-  const handlePlayPause = useCallback(() => {
-    // Toggle playback
-  }, []);
+  const { state: playbackState } = usePlaybackState();
+  const isStreamPlaying = playbackState === State.Playing;
+
+  const handlePlayPause = useCallback(async () => {
+    if (isStreamPlaying) {
+      await TrackPlayer.pause();
+    } else {
+      await TrackPlayer.play();
+    }
+  }, [isStreamPlaying]);
 
   return (
     <View style={styles.container}>
@@ -101,7 +108,7 @@ function AppContent({ navigationRef }) {
         <MiniPlayer
           trackTitle="Midnight Frequencies"
           djName="DJ Shadow"
-          isPlaying={true}
+          isPlaying={isStreamPlaying}
           isLive={true}
           onPress={() => handleNavigate('RadioPlayer')}
           onPlayPause={handlePlayPause}
