@@ -47,7 +47,7 @@ const SongRequests = () => {
         setIsLoading(false);
       },
       (error) => {
-        console.error('Song requests listener error:', error);
+        if (__DEV__) console.error('Song requests listener error:', error);
         setIsLoading(false);
         Alert.alert('Connection Error', 'Unable to load song requests.');
       }
@@ -79,7 +79,7 @@ const SongRequests = () => {
       setShowForm(false);
       Alert.alert('Request Sent!', 'Your song request has been submitted to the DJ.');
     } catch (error) {
-      console.error('Submit request error:', error);
+      if (__DEV__) console.error('Submit request error:', error);
       Alert.alert('Submit Failed', 'Could not submit your request. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -91,7 +91,7 @@ const SongRequests = () => {
       const requestRef = doc(db, 'songRequests', requestId);
       await updateDoc(requestRef, { votes: increment(1) });
     } catch (error) {
-      console.error('Vote error:', error);
+      if (__DEV__) console.error('Vote error:', error);
       Alert.alert('Vote Failed', 'Could not register your vote. Please try again.');
     }
   }, []);

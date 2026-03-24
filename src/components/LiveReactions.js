@@ -110,7 +110,7 @@ const LiveReactions = () => {
       const countsRef = doc(db, 'appState', 'reactionCounts');
       await setDoc(countsRef, { [reaction.id]: increment(1) }, { merge: true });
     } catch (error) {
-      console.error('Reaction send error:', error);
+      if (__DEV__) console.error('Reaction send error:', error);
     }
   };
 

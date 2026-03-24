@@ -2,21 +2,17 @@ import React, { useEffect } from 'react';
 import { SafeAreaView, StatusBar, StyleSheet, View } from 'react-native';
 import AppNavigator from './AppNavigator';
 import setupPlayer from './service';
-import DebugOverlay, { enableDebugLogging } from './components/DebugOverlay';
 import { colors } from './theme';
-
-// Enable debug logging early so all console output is captured
-enableDebugLogging();
 
 const App = () => {
   useEffect(() => {
-    console.log('App mounted — initializing TrackPlayer...');
+    if (__DEV__) console.log('App mounted — initializing TrackPlayer...');
     setupPlayer()
       .then(() => {
-        console.log('TrackPlayer setup complete');
+        if (__DEV__) console.log('TrackPlayer setup complete');
       })
       .catch((error) => {
-        console.error('TrackPlayer setup failed:', error.message);
+        if (__DEV__) console.error('TrackPlayer setup failed:', error.message);
       });
 
     return () => {
@@ -30,7 +26,6 @@ const App = () => {
         <StatusBar barStyle="light-content" backgroundColor={colors.background} />
         <AppNavigator />
       </SafeAreaView>
-      <DebugOverlay />
     </View>
   );
 };

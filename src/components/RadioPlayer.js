@@ -44,7 +44,7 @@ const RadioPlayer = () => {
         await TrackPlayer.play();
       }
     } catch (error) {
-      console.error('Playback error:', error);
+      if (__DEV__) console.error('Playback error:', error);
       Alert.alert('Playback Error', 'Unable to play the stream. Please try again.');
     }
   };
