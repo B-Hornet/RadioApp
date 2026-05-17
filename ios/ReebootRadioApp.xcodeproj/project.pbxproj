@@ -10,21 +10,39 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		1C2ED34745564E588FF67267 /* DMSans-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DFC07DC69B2745CB89E22109 /* DMSans-SemiBold.ttf */; };
+		3477FFC0F06949E5BF3B7E07 /* DMSans-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6DB155619B2149A98C6939D6 /* DMSans-Medium.ttf */; };
 		478C3763C1ED4E17B6C8F760 /* libPods-ReebootRadioApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2DA17ABEC4F43D2453D59B34 /* libPods-ReebootRadioApp.a */; };
+		4E10B8BCA6A34109AE3B2672 /* Oswald-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = C847F71887C845DFB612E33D /* Oswald-Bold.ttf */; };
+		69AA36A2630948E5BB39C2A8 /* DMSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AAFD0D1197604F13A3BB5FE7 /* DMSans-Regular.ttf */; };
 		797EB2EAC974F65D961B9E41 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B0A76422759172AB4A586ECE /* PrivacyInfo.xcprivacy */; };
+		845CD92E24FA4F86872C3825 /* DMSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 485CAAF00FA34A0299BE0040 /* DMSans-Bold.ttf */; };
+		A2B46A0198FC4C3AB4E063B7 /* JetBrainsMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 04D944E2A6DC410BA83286A0 /* JetBrainsMono-Medium.ttf */; };
+		BBFAAD5821FF41389068854A /* Oswald-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2181C9E4025E474CA0BCF99F /* Oswald-Medium.ttf */; };
+		EABAC54BEC834269A769B2B0 /* JetBrainsMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 714AAE8E8159412CBAF58FAD /* JetBrainsMono-Regular.ttf */; };
+		FA249C27D8F640F48520F44B /* Oswald-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0E7D84C299C24AC281A8D45F /* Oswald-SemiBold.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		04D944E2A6DC410BA83286A0 /* JetBrainsMono-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "JetBrainsMono-Medium.ttf"; path = "../assets/fonts/JetBrainsMono-Medium.ttf"; sourceTree = "<group>"; };
+		0E7D84C299C24AC281A8D45F /* Oswald-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Oswald-SemiBold.ttf"; path = "../assets/fonts/Oswald-SemiBold.ttf"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* ReebootRadioApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ReebootRadioApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = ReebootRadioApp/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = ReebootRadioApp/AppDelegate.mm; sourceTree = "<group>"; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = ReebootRadioApp/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ReebootRadioApp/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ReebootRadioApp/main.m; sourceTree = "<group>"; };
+		2181C9E4025E474CA0BCF99F /* Oswald-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Oswald-Medium.ttf"; path = "../assets/fonts/Oswald-Medium.ttf"; sourceTree = "<group>"; };
 		2DA17ABEC4F43D2453D59B34 /* libPods-ReebootRadioApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ReebootRadioApp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		485CAAF00FA34A0299BE0040 /* DMSans-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "DMSans-Bold.ttf"; path = "../assets/fonts/DMSans-Bold.ttf"; sourceTree = "<group>"; };
 		587F3FBA6DDA2ABCAF563363 /* Pods-ReebootRadioApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReebootRadioApp.debug.xcconfig"; path = "Target Support Files/Pods-ReebootRadioApp/Pods-ReebootRadioApp.debug.xcconfig"; sourceTree = "<group>"; };
+		6DB155619B2149A98C6939D6 /* DMSans-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "DMSans-Medium.ttf"; path = "../assets/fonts/DMSans-Medium.ttf"; sourceTree = "<group>"; };
+		714AAE8E8159412CBAF58FAD /* JetBrainsMono-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "JetBrainsMono-Regular.ttf"; path = "../assets/fonts/JetBrainsMono-Regular.ttf"; sourceTree = "<group>"; };
 		A1E1903F3B6E48F052071501 /* Pods-ReebootRadioApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ReebootRadioApp.release.xcconfig"; path = "Target Support Files/Pods-ReebootRadioApp/Pods-ReebootRadioApp.release.xcconfig"; sourceTree = "<group>"; };
+		AAFD0D1197604F13A3BB5FE7 /* DMSans-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "DMSans-Regular.ttf"; path = "../assets/fonts/DMSans-Regular.ttf"; sourceTree = "<group>"; };
 		B0A76422759172AB4A586ECE /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = ReebootRadioApp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		C847F71887C845DFB612E33D /* Oswald-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Oswald-Bold.ttf"; path = "../assets/fonts/Oswald-Bold.ttf"; sourceTree = "<group>"; };
+		DFC07DC69B2745CB89E22109 /* DMSans-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "DMSans-SemiBold.ttf"; path = "../assets/fonts/DMSans-SemiBold.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -40,6 +58,23 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		119AB6BB5DE844C5B9A591C5 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				AAFD0D1197604F13A3BB5FE7 /* DMSans-Regular.ttf */,
+				6DB155619B2149A98C6939D6 /* DMSans-Medium.ttf */,
+				485CAAF00FA34A0299BE0040 /* DMSans-Bold.ttf */,
+				C847F71887C845DFB612E33D /* Oswald-Bold.ttf */,
+				714AAE8E8159412CBAF58FAD /* JetBrainsMono-Regular.ttf */,
+				0E7D84C299C24AC281A8D45F /* Oswald-SemiBold.ttf */,
+				2181C9E4025E474CA0BCF99F /* Oswald-Medium.ttf */,
+				DFC07DC69B2745CB89E22109 /* DMSans-SemiBold.ttf */,
+				04D944E2A6DC410BA83286A0 /* JetBrainsMono-Medium.ttf */,
+			);
+			name = Resources;
+			path = "";
+			sourceTree = "<group>";
+		};
 		13B07FAE1A68108700A75B9A /* ReebootRadioApp */ = {
 			isa = PBXGroup;
 			children = (
@@ -87,6 +122,7 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				375FC4CDAE3214CAECBE2973 /* Pods */,
+				119AB6BB5DE844C5B9A591C5 /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -163,6 +199,15 @@
 			files = (
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				797EB2EAC974F65D961B9E41 /* PrivacyInfo.xcprivacy in Resources */,
+				69AA36A2630948E5BB39C2A8 /* DMSans-Regular.ttf in Resources */,
+				3477FFC0F06949E5BF3B7E07 /* DMSans-Medium.ttf in Resources */,
+				845CD92E24FA4F86872C3825 /* DMSans-Bold.ttf in Resources */,
+				4E10B8BCA6A34109AE3B2672 /* Oswald-Bold.ttf in Resources */,
+				EABAC54BEC834269A769B2B0 /* JetBrainsMono-Regular.ttf in Resources */,
+				FA249C27D8F640F48520F44B /* Oswald-SemiBold.ttf in Resources */,
+				BBFAAD5821FF41389068854A /* Oswald-Medium.ttf in Resources */,
+				1C2ED34745564E588FF67267 /* DMSans-SemiBold.ttf in Resources */,
+				A2B46A0198FC4C3AB4E063B7 /* JetBrainsMono-Medium.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -271,7 +316,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -281,6 +326,7 @@
 				PRODUCT_NAME = ReebootRadioApp;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -299,7 +345,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 2.1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -308,6 +354,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.reebootradio.app;
 				PRODUCT_NAME = ReebootRadioApp;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;

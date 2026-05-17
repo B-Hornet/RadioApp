@@ -1,0 +1,81 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Build and upload to TestFlight (no review submission)"
+  lane :testflight do
+    bump_ios_build_number
+    build_release_ipa
+
+    upload_to_testflight(
+      api_key: api_key,
+      ipa: ipa_path,
+      skip_waiting_for_build_processing: true,
+      changelog: ENV["CHANGELOG"] || "Bug fixes and improvements",
+    )
+  end
+
+  desc "Upload existing build/ios/ipa/*.ipa to TestFlight (no rebuild)"
+  lane :testflight_upload_existing do
+    upload_to_testflight(
+      api_key: api_key,
+      ipa: ipa_path,
+      skip_waiting_for_build_processing: true,
+      changelog: ENV["CHANGELOG"] || "Bug fixes and improvements",
+    )
+  end
+
+  desc "Submit latest TestFlight build to App Store review"
+  lane :appstore_submit do
+    deliver(
+      api_key: api_key,
+      skip_binary_upload: true,
+      submit_for_review: true,
+      automatic_release: false,
+      force: true,
+      precheck_include_in_app_purchases: false,
+    )
+  end
+
+  def bump_ios_build_number
+    plist = "ReebootRadioApp/Info.plist"
+    current = sh("/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' #{plist}").strip.to_i
+    new_build = current + 1
+    sh("/usr/libexec/PlistBuddy -c 'Set :CFBundleVersion #{new_build}' #{plist}")
+    UI.success("Info.plist CFBundleVersion bumped: #{current} → #{new_build}")
+  end
+
+  def build_release_ipa
+    build_app(
+      workspace: "ReebootRadioApp.xcworkspace",
+      scheme: "ReebootRadioApp",
+      configuration: "Release",
+      export_method: "app-store",
+      export_options: {
+        signingStyle: "automatic",
+        teamID: "H2RSJ22244",
+        uploadBitcode: false,
+        uploadSymbols: true,
+      },
+      output_directory: "../build/ios/ipa",
+      output_name: "ReebootRadioApp.ipa",
+      clean: false,
+      include_symbols: true,
+    )
+  end
+
+  def ipa_path
+    ipa = Dir.glob("../build/ios/ipa/*.ipa").first
+    UI.user_error!("No IPA found in build/ios/ipa/ — did build_release_ipa succeed?") if ipa.nil?
+    File.expand_path(ipa)
+  end
+
+  def api_key
+    app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_content: ENV["ASC_KEY_CONTENT"],
+      is_key_content_base64: true,
+      in_house: false,
+    )
+  end
+end

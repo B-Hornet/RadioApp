@@ -1,0 +1,4 @@
+app_identifier("com.reebootradio.app")
+apple_id(ENV["APPLE_ID"])
+team_id("H2RSJ22244")
+itc_team_id(ENV["ITC_TEAM_ID"])
