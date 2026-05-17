@@ -2,21 +2,50 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 
+// Load release signing config from gitignored android/keystore.properties.
+// Falls back to debug-signed builds when the file is absent (CI, fresh clones).
+def keystorePropsFile = rootProject.file('keystore.properties')
+def hasReleaseSigning = keystorePropsFile.exists()
+def keystoreProps = new Properties()
+if (hasReleaseSigning) {
+    keystoreProps.load(new FileInputStream(keystorePropsFile))
+}
+
 android {
-    namespace 'com.reebootradioapp' // Add your namespace here
+    namespace 'com.reebootradioapp'
     compileSdkVersion 34
+
+    buildFeatures {
+        buildConfig true
+    }
 
     defaultConfig {
         applicationId "com.reebootradioapp"
         minSdkVersion 23
         targetSdkVersion 34
+        // ⚠ versionCode MUST be bumped above the last value uploaded
+        //   to Google Play Console before this build ships. Verify
+        //   in Play Console → Reeboot Radio → Production → Release
+        //   history, then increment the integer below.
         versionCode 1
-        versionName "1.0"
+        versionName "2.2.0"
         multiDexEnabled true
+    }
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            release {
+                storeFile file(keystoreProps['REEBOOT_RELEASE_STORE_FILE'])
+                storePassword keystoreProps['REEBOOT_RELEASE_STORE_PASSWORD']
+                keyAlias keystoreProps['REEBOOT_RELEASE_KEY_ALIAS']
+                keyPassword keystoreProps['REEBOOT_RELEASE_KEY_PASSWORD']
+            }
+        }
     }
 
     buildTypes {
         release {
+            signingConfig hasReleaseSigning ? signingConfigs.release : signingConfigs.debug
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -29,7 +58,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation "com.facebook.react:react-native:0.75.3"
+    implementation "com.facebook.react:react-android:0.75.3"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.10"
     implementation "androidx.multidex:multidex:2.0.1"
     implementation project(':react-native-track-player')

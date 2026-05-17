@@ -44,8 +44,17 @@ local.properties
 .env.*
 *.keystore
 !debug.keystore
+*.jks
+!debug.jks
+android/keystore.properties
+android/app/keystore.properties
 serviceAccountKey.json
+serviceAccountKey*.json
 google-services.json
+GoogleService-Info.plist
+*.p8
+*.p12
+*.mobileprovision
 
 # IDE
 .idea/
