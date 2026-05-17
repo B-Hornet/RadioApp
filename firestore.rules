@@ -1,0 +1,145 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ╔═════════════════════════════════════════════════════════════╗
+    // ║ COMPAT MODE — bridges v1.x (no-auth) and v2.2.0 (auth)      ║
+    // ║ Tighten to firestore.rules.strict once v2.2.0 adoption      ║
+    // ║ exceeds ~90% (App Store Connect / Play Console analytics    ║
+    // ║ → Active devices by version).                               ║
+    // ╚═════════════════════════════════════════════════════════════╝
+
+    function isAuthed() { return request.auth != null; }
+    function isOwner() {
+      return isAuthed()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // users — only the new app touches this collection. Same gating
+    // as strict rules; no compat needed.
+    // ─────────────────────────────────────────────────────────────
+    match /users/{uid} {
+      allow read: if isAuthed() && (request.auth.uid == uid || isOwner());
+      allow create: if isAuthed()
+        && request.auth.uid == uid
+        && !('role' in request.resource.data);
+      allow update: if (isAuthed() && request.auth.uid == uid
+                       && request.resource.data.diff(resource.data)
+                          .affectedKeys()
+                          .hasOnly(['displayName', 'avatarUrl', 'updatedAt']))
+                    || isOwner();
+      allow delete: if (isAuthed() && request.auth.uid == uid) || isOwner();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // schedule — public read, owner-only write (unchanged).
+    // ─────────────────────────────────────────────────────────────
+    match /schedule/{slotId} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Chatrooms — public read, owner-only write.
+    // ─────────────────────────────────────────────────────────────
+    match /Chatrooms/{roomId} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Messages — chat. Compat: old client posts without uid; new
+    // client posts with uid that must match auth. Reads open.
+    // ─────────────────────────────────────────────────────────────
+    match /Messages/{msgId} {
+      allow read: if true;
+      // Old-app path: no uid field (no auth either).
+      // New-app path: uid in body must match auth uid.
+      allow create: if !('uid' in request.resource.data)
+                    || (isAuthed() && request.resource.data.uid == request.auth.uid);
+      allow update: if isOwner();
+      // Authors can delete their own messages (account-deletion path).
+      // Owner can moderate.
+      allow delete: if isOwner()
+                    || (isAuthed() && 'uid' in resource.data
+                        && resource.data.uid == request.auth.uid);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // songRequests — same compat pattern.
+    // ─────────────────────────────────────────────────────────────
+    match /songRequests/{reqId} {
+      allow read: if true;
+      allow create: if !('uid' in request.resource.data)
+                    || (isAuthed() && request.resource.data.uid == request.auth.uid);
+      // Vote: any client may bump votes by exactly +1.
+      allow update: if (request.resource.data.diff(resource.data)
+                       .affectedKeys().hasOnly(['votes'])
+                       && request.resource.data.votes == resource.data.votes + 1)
+                    || isOwner();
+      allow delete: if isOwner()
+                    || (isAuthed() && 'uid' in resource.data
+                        && resource.data.uid == request.auth.uid);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // shoutouts — owner-only writes (unchanged).
+    // ─────────────────────────────────────────────────────────────
+    match /shoutouts/{id} {
+      allow read: if true;
+      allow create, update, delete: if isOwner();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // liveReactions — same compat pattern; whitelisted reaction ids.
+    // ─────────────────────────────────────────────────────────────
+    match /liveReactions/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.reactionId in ['fire', 'heart', 'clap', 'hundred']
+                    && (!('uid' in request.resource.data)
+                        || (isAuthed() && request.resource.data.uid == request.auth.uid));
+      allow update: if isOwner();
+      allow delete: if isOwner()
+                    || (isAuthed() && 'uid' in resource.data
+                        && resource.data.uid == request.auth.uid);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // appState — server-derived. reactionCounts is client-incrementable
+    // on whitelisted keys only.
+    // ─────────────────────────────────────────────────────────────
+    match /appState/reactionCounts {
+      allow read: if true;
+      allow create: if request.resource.data.keys()
+                       .hasOnly(['fire', 'heart', 'clap', 'hundred']);
+      allow update: if request.resource.data.diff(resource.data)
+                       .affectedKeys()
+                       .hasOnly(['fire', 'heart', 'clap', 'hundred']);
+    }
+    match /appState/listeners {
+      allow read: if true;
+      allow write: if false;  // server-only
+    }
+    match /appState/{otherDoc} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // leaderboard — derived; client read only.
+    // ─────────────────────────────────────────────────────────────
+    match /leaderboard/{id} {
+      allow read: if true;
+      allow write: if false;  // server-only via Cloud Function
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Default deny.
+    // ─────────────────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

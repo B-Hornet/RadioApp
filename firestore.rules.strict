@@ -1,0 +1,167 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─────────────────────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────────────────────
+    function isAuthed() {
+      return request.auth != null;
+    }
+    function isOwner() {
+      return isAuthed()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
+    }
+    function uidMatches(uid) {
+      return isAuthed() && request.auth.uid == uid;
+    }
+    // Non-anonymous = the user signed up with email/password or a real
+    // OAuth provider. Anonymous bootstrap users (App.js signInAnonymously)
+    // can still read everything and post reactions, but cannot post chat
+    // text — that's the abuse vector we're gating.
+    function isIdentified() {
+      return isAuthed()
+        && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // users — role lives here. Self-read only; only owner sets role.
+    // Migrate to custom claims later (request.auth.token.role) so
+    // isOwner() doesn't cost a Firestore read on every gated op.
+    // ─────────────────────────────────────────────────────────────
+    match /users/{uid} {
+      allow read: if uidMatches(uid) || isOwner();
+      allow create: if uidMatches(uid)
+        && !('role' in request.resource.data);
+      allow update: if (uidMatches(uid)
+                       && request.resource.data.diff(resource.data)
+                          .affectedKeys()
+                          .hasOnly(['displayName', 'avatarUrl', 'updatedAt']))
+                    || isOwner();
+      // Self-delete for account-deletion compliance (Apple 5.1.1(v),
+      // Play Store account-deletion policy).
+      allow delete: if uidMatches(uid) || isOwner();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // schedule — public read; owner-only write.
+    // ─────────────────────────────────────────────────────────────
+    match /schedule/{slotId} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Chatrooms — listener counts. Public read; owner-only write.
+    // ─────────────────────────────────────────────────────────────
+    match /Chatrooms/{roomId} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Messages — chat. Any signed-in user may post their own message;
+    // cannot self-promote role; owner moderates.
+    // ─────────────────────────────────────────────────────────────
+    match /Messages/{msgId} {
+      allow read: if isAuthed();
+      // Posting requires a real (non-anonymous) account. Reads stay
+      // open to all authed users including the anonymous bootstrap so
+      // listeners can lurk without signing up.
+      allow create: if isIdentified()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 500
+        && (request.resource.data.role == 'listener' || isOwner());
+      allow update: if isOwner();
+      // Authors can delete their own messages (account-deletion path).
+      allow delete: if isOwner()
+                    || (isAuthed() && resource.data.uid == request.auth.uid);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // songRequests — listeners create + vote; owner manages status.
+    // Vote: any auth user may bump votes by exactly +1.
+    // ─────────────────────────────────────────────────────────────
+    match /songRequests/{reqId} {
+      allow read: if isAuthed();
+      allow create: if isAuthed()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.songTitle is string
+        && request.resource.data.songTitle.size() > 0
+        && request.resource.data.songTitle.size() <= 200
+        && request.resource.data.votes == 0
+        && request.resource.data.status == 'pending';
+      allow update: if (isAuthed()
+                       && request.resource.data.diff(resource.data)
+                          .affectedKeys().hasOnly(['votes'])
+                       && request.resource.data.votes == resource.data.votes + 1)
+                    || isOwner();
+      // Authors may delete their own pending requests (account-deletion path).
+      allow delete: if isOwner()
+                    || (isAuthed() && resource.data.uid == request.auth.uid);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // shoutouts — owner-only writes; auth read.
+    // ─────────────────────────────────────────────────────────────
+    match /shoutouts/{id} {
+      allow read: if isAuthed();
+      allow create, update, delete: if isOwner();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // liveReactions — ephemeral floating emojis; auth user can post.
+    // ─────────────────────────────────────────────────────────────
+    match /liveReactions/{id} {
+      allow read: if isAuthed();
+      allow create: if isAuthed()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.reactionId in ['fire', 'heart', 'clap', 'hundred'];
+      allow update: if isOwner();
+      // Authors can delete their own reactions during account deletion.
+      allow delete: if isOwner()
+                    || (isAuthed() && resource.data.uid == request.auth.uid);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // appState — server-derived state.
+    //   reactionCounts: client-writable, but only for whitelisted keys.
+    //   listeners:      server-only (Cloud Function aggregate).
+    // ─────────────────────────────────────────────────────────────
+    match /appState/reactionCounts {
+      allow read: if isAuthed();
+      allow create: if isAuthed()
+        && request.resource.data.keys().hasOnly(['fire', 'heart', 'clap', 'hundred']);
+      allow update: if isAuthed()
+        && request.resource.data.diff(resource.data)
+           .affectedKeys()
+           .hasOnly(['fire', 'heart', 'clap', 'hundred']);
+    }
+    match /appState/listeners {
+      allow read: if isAuthed();
+      allow write: if false;
+    }
+    match /appState/{otherDoc} {
+      allow read: if isAuthed();
+      allow write: if isOwner();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // leaderboard — derived; client read only, server write.
+    // ─────────────────────────────────────────────────────────────
+    match /leaderboard/{id} {
+      allow read: if isAuthed();
+      allow write: if false;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Default deny.
+    // ─────────────────────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
