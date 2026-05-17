@@ -25,21 +25,29 @@ buildscript {
 
 allprojects {
     repositories {
+        // Local React Native module repository (resolve first)
+        maven { url "$rootDir/../node_modules/react-native/android" }
         google()
         mavenCentral()
         // Include JitPack for certain dependencies
-        maven { url 'https://jitpack.io' }  
-        // Add Facebook GitHub Maven repo securely
-        maven {
-            url 'https://maven.pkg.github.com/facebook/react-native'
-            credentials {
-                // Securely retrieve GitHub credentials from environment variables
-                username = System.getenv("GITHUB_USERNAME") ?: ""
-                password = System.getenv("GITHUB_TOKEN") ?: ""
+        maven { url 'https://jitpack.io' }
+    }
+
+    // Align Kotlin JVM target across all modules
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            jvmTarget = "1.8"
+        }
+    }
+
+    // RN 0.71+ renamed artifact from react-native to react-android.
+    // Map old name so third-party libraries (e.g. react-native-track-player) resolve.
+    configurations.configureEach {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'com.facebook.react' && details.requested.name == 'react-native') {
+                details.useTarget group: 'com.facebook.react', name: 'react-android', version: '0.75.3'
             }
         }
-        // Local React Native module repository
-        maven { url "$rootDir/../node_modules/react-native/android" }
     }
 }
 

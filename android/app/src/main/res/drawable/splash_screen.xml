@@ -4,7 +4,7 @@
     <item>
         <bitmap
             android:gravity="center"
-            android:src="@drawable/reebologo.png" /> <!-- Replace 'logo' with the name of your logo file -->
+            android:src="@drawable/reebologo" />
     </item>
 </layer-list>
 

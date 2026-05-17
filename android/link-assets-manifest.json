@@ -1,0 +1,41 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/DMSans-Bold.ttf",
+      "sha1": "86add8f35d7c3a6a088c575ac140320c7bb52862"
+    },
+    {
+      "path": "assets/fonts/DMSans-Medium.ttf",
+      "sha1": "6e8b4c3c899786d5d9b5698c87dc8264e2b818cd"
+    },
+    {
+      "path": "assets/fonts/DMSans-Regular.ttf",
+      "sha1": "982b0e6f1234a1fa364309eb508eb374c27572cf"
+    },
+    {
+      "path": "assets/fonts/DMSans-SemiBold.ttf",
+      "sha1": "74ae0321e69f616713fd7589765fa2124e9d2681"
+    },
+    {
+      "path": "assets/fonts/JetBrainsMono-Medium.ttf",
+      "sha1": "98005b11a0b104dcbf45da841c64cc6da2e34092"
+    },
+    {
+      "path": "assets/fonts/JetBrainsMono-Regular.ttf",
+      "sha1": "d6f1f912710bba58f54bc397bee06776c2a76eb1"
+    },
+    {
+      "path": "assets/fonts/Oswald-Bold.ttf",
+      "sha1": "ad9b3cfc85965c43f35c6f1be746c403164f4887"
+    },
+    {
+      "path": "assets/fonts/Oswald-Medium.ttf",
+      "sha1": "d38de92e345ff5fddae4c2cfcf4bf7fc2078a55b"
+    },
+    {
+      "path": "assets/fonts/Oswald-SemiBold.ttf",
+      "sha1": "b5098d6bb09a27632046957acfb93730f4a6f8fb"
+    }
+  ]
+}
