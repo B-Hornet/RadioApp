@@ -27,7 +27,7 @@ import Video from 'react-native-video';
 import { colors, elevation } from '../theme/tokens';
 
 // Asset paths — update these to match your project
-const LOGO_VIDEO = require('../../assets/Images/Radio App Background.mp4');
+const LOGO_VIDEO = require('../../assets/Images/radio-app-background.mp4');
 const LOGO_IMAGE = require('../../assets/Images/reebologo.png');
 
 export default function StudioLogo({
@@ -149,7 +149,7 @@ export default function StudioLogo({
             resizeMode="cover"
             repeat
             muted
-            paused={!playing}
+            paused={false}
             onError={() => setVideoError(true)}
             // Prevent controller UI
             controls={false}

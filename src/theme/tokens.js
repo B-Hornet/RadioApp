@@ -29,8 +29,8 @@ export const colors = {
   glass: 'rgba(255, 255, 255, 0.04)',
   glassBorder: 'rgba(255, 255, 255, 0.08)',
   glassHover: 'rgba(255, 255, 255, 0.07)',
-  glassAccent: 'rgba(255, 107, 0, 0.06)',
-  glassAccentBorder: 'rgba(255, 107, 0, 0.15)',
+  glassAccent: 'rgba(255, 107, 0, 0.03)',
+  glassAccentBorder: 'rgba(255, 107, 0, 0.10)',
 
   // Text
   textPrimary: '#F0EDE8',
@@ -237,7 +237,7 @@ export const layout = {
   miniPlayerHeight: 56,
   miniPlayerBottom: 72, // navDockHeight + spacing.xs
   screenBottomPadding: 140, // navDockHeight + miniPlayerHeight + spacing.lg
-  inputBottomMargin: 72, // clears NavDock
+  inputBottomMargin: 140, // clears NavDock + MiniPlayer
 };
 
 // ─── ANTI-PATTERNS (for code review) ──────────────────────

@@ -11,7 +11,7 @@ import {
   Linking,
 } from 'react-native';
 import Video from 'react-native-video';
-import { spacing, fonts, borderRadius } from '../theme';
+import { colors, spacing, fonts, borderRadius } from '../theme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -56,14 +56,14 @@ const WelcomeScreen = ({ navigation }) => {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.tagline}>YOUR SOUND. YOUR STATION.</Text>
+          <Text style={styles.tagline}>WHAT RADIO SHOULD SOUND LIKE</Text>
         </Animated.View>
       </View>
 
       {/* Looping video background — layered on top once ready */}
       {!videoError && (
         <Video
-          source={require('../../assets/Radio App Background.mp4')}
+          source={require('../../assets/radio-app-background.mp4')}
           style={[styles.backgroundVideo, !videoReady && { opacity: 0 }]}
           resizeMode="cover"
           repeat={true}
@@ -88,11 +88,11 @@ const WelcomeScreen = ({ navigation }) => {
       >
         <TouchableOpacity
           style={styles.listenButton}
-          onPress={() => navigation.navigate('Home')}
+          onPress={() => navigation.navigate('Hub')}
           activeOpacity={0.85}
         >
           <View style={styles.listenButtonInner}>
-            <Text style={styles.listenButtonText}>Listen to Reeboot Radio</Text>
+            <Text style={styles.listenButtonText}>Listen Now</Text>
           </View>
         </TouchableOpacity>
 
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   tagline: {
-    color: '#CC0000',
+    color: colors.primary,
     fontSize: fonts.sizes.md,
     fontWeight: fonts.weights.bold,
     letterSpacing: 3,
@@ -153,26 +153,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     alignItems: 'center',
   },
-  // Primary CTA — solid red button with glow
   listenButton: {
     width: '100%',
     marginBottom: spacing.md,
     borderRadius: borderRadius.xl,
     overflow: 'hidden',
-    shadowColor: '#CC0000',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.6,
     shadowRadius: 16,
     elevation: 10,
   },
   listenButtonInner: {
-    backgroundColor: '#CC0000',
+    backgroundColor: colors.primary,
     paddingVertical: spacing.md + 4,
     paddingHorizontal: spacing.xl,
     alignItems: 'center',
     borderRadius: borderRadius.xl,
     borderWidth: 1,
-    borderColor: '#E62020',
+    borderColor: colors.primaryLight,
   },
   listenButtonText: {
     color: '#FFFFFF',
@@ -180,7 +179,6 @@ const styles = StyleSheet.create({
     fontWeight: fonts.weights.heavy,
     letterSpacing: 0.5,
   },
-  // Secondary CTA — outlined/ghost button
   websiteButton: {
     paddingVertical: spacing.md + 2,
     paddingHorizontal: spacing.xl,
@@ -188,11 +186,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: borderRadius.xl,
     borderWidth: 1.5,
-    borderColor: 'rgba(204, 0, 0, 0.6)',
-    backgroundColor: 'rgba(204, 0, 0, 0.1)',
+    borderColor: 'rgba(255, 107, 0, 0.6)',
+    backgroundColor: colors.primarySubtle,
   },
   websiteButtonText: {
-    color: '#CC0000',
+    color: colors.primary,
     fontSize: fonts.sizes.lg,
     fontWeight: fonts.weights.bold,
     letterSpacing: 0.5,

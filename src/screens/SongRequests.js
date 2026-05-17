@@ -4,12 +4,12 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  FlatList,
+  ScrollView,
   StyleSheet,
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { db } from '../firebaseConfig';
+import { db, auth } from '../firebaseConfig';
 import {
   collection,
   addDoc,
@@ -65,7 +65,13 @@ const SongRequests = () => {
 
     setIsSubmitting(true);
     try {
+      const uid = auth.currentUser?.uid;
+      if (!uid) {
+        Alert.alert('Submit Failed', 'Not signed in. Please restart the app.');
+        return;
+      }
       await addDoc(collection(db, 'songRequests'), {
+        uid,
         songTitle: songTitle.trim(),
         artistName: artistName.trim(),
         requesterName: requesterName.trim() || 'Anonymous',
@@ -114,7 +120,7 @@ const SongRequests = () => {
     }
   };
 
-  const renderRequest = ({ item }) => (
+  const renderRequest = (item) => (
     <View style={styles.requestCard}>
       <View style={styles.requestInfo}>
         <Text style={styles.songTitle}>{item.songTitle}</Text>
@@ -216,19 +222,21 @@ const SongRequests = () => {
           <Text style={styles.loadingText}>Loading requests...</Text>
         </View>
       ) : (
-        <FlatList
-          data={requests}
-          renderItem={renderRequest}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
+        <ScrollView contentContainerStyle={styles.listContent}>
+          {requests.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyEmoji}>{'\uD83C\uDFB5'}</Text>
               <Text style={styles.emptyText}>No requests yet</Text>
               <Text style={styles.emptySubtext}>Be the first to request a song!</Text>
             </View>
-          }
-        />
+          ) : (
+            requests.map((item) => (
+              <React.Fragment key={item.id}>
+                {renderRequest(item)}
+              </React.Fragment>
+            ))
+          )}
+        </ScrollView>
       )}
     </View>
   );

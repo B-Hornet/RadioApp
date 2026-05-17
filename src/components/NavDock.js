@@ -2,10 +2,7 @@
  * NavDock — Bottom navigation dock
  * ═════════════════════════════════════
  * Icon-based navigation with active indicator.
- * Replaces the old card-based hub navigation.
- *
- * Usage:
- *   <NavDock activeRoute={currentRoute} onNavigate={handleNav} />
+ * Shows Control Room icon for owner-authenticated users.
  */
 
 import React from 'react';
@@ -17,13 +14,15 @@ import Animated, {
 } from 'react-native-reanimated';
 import { colors, typography, radius, layout } from '../theme/tokens';
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { route: 'Hub', icon: '⬡', label: 'Hub' },
   { route: 'RadioPlayer', icon: '◉', label: 'Player' },
   { route: 'ChatRoom', icon: '◫', label: 'Chat' },
   { route: 'DJSchedule', icon: '☰', label: 'Schedule' },
   { route: 'ListenerProfile', icon: '◎', label: 'Profile' },
 ];
+
+const OWNER_NAV_ITEM = { route: 'ControlRoom', icon: '⚙', label: 'Control' };
 
 const NavItem = ({ item, isActive, onPress }) => {
   const scale = useSharedValue(1);
@@ -46,6 +45,8 @@ const NavItem = ({ item, isActive, onPress }) => {
           style={[
             styles.icon,
             isActive && styles.iconActive,
+            item.route === 'ControlRoom' && styles.iconOwner,
+            item.route === 'ControlRoom' && isActive && styles.iconOwnerActive,
           ]}
         >
           {item.icon}
@@ -54,20 +55,26 @@ const NavItem = ({ item, isActive, onPress }) => {
           style={[
             styles.label,
             isActive && styles.labelActive,
+            item.route === 'ControlRoom' && styles.labelOwner,
+            item.route === 'ControlRoom' && isActive && styles.labelOwnerActive,
           ]}
         >
           {item.label}
         </Text>
-        {isActive && <View style={styles.indicator} />}
+        {isActive && <View style={[styles.indicator, item.route === 'ControlRoom' && styles.indicatorOwner]} />}
       </Animated.View>
     </Pressable>
   );
 };
 
-export default function NavDock({ activeRoute, onNavigate }) {
+export default function NavDock({ activeRoute, onNavigate, isOwner = false }) {
+  const navItems = isOwner
+    ? [...BASE_NAV_ITEMS, OWNER_NAV_ITEM]
+    : BASE_NAV_ITEMS;
+
   return (
     <View style={styles.dock}>
-      {NAV_ITEMS.map((item) => (
+      {navItems.map((item) => (
         <NavItem
           key={item.route}
           item={item}
@@ -101,7 +108,7 @@ const styles = StyleSheet.create({
   },
   itemInner: {
     alignItems: 'center',
-    paddingVertical: 6, // optical: between xs(4) and sm(8)
+    paddingVertical: 6,
     paddingHorizontal: 12,
     gap: 3,
   },
@@ -111,7 +118,12 @@ const styles = StyleSheet.create({
   },
   iconActive: {
     color: colors.primary,
-    // glow effect handled by shadow on the container if needed
+  },
+  iconOwner: {
+    color: colors.textMuted,
+  },
+  iconOwnerActive: {
+    color: colors.live,
   },
   label: {
     fontFamily: 'DMSans-Regular',
@@ -126,6 +138,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.primary,
   },
+  labelOwner: {
+    color: colors.textMuted,
+  },
+  labelOwnerActive: {
+    color: colors.live,
+  },
   indicator: {
     width: 16,
     height: 2,
@@ -137,5 +155,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
     marginTop: -1,
+  },
+  indicatorOwner: {
+    backgroundColor: colors.live,
+    shadowColor: colors.live,
   },
 });

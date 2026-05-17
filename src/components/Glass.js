@@ -4,15 +4,26 @@
  * Replaces all flat `colors.surface` cards across the app.
  * Supports accent glow, press states, and consistent blur treatment.
  *
+ * WARNING: Do NOT use Glass inside FlatList renderItem — Reanimated's
+ * Animated.View conflicts with VirtualizedList in RN 0.75. Use inline
+ * styles with plain View instead.
+ *
  * Usage:
  *   <Glass>...</Glass>
- *   <Glass accent glow>...</Glass>            // orange-tinted with ambient glow
- *   <Glass onPress={() => nav('player')}>...  // tappable
+ *   <Glass accent glow>...</Glass>
+ *   <Glass onPress={() => nav('player')}>...</Glass>
  */
 
 import React from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 import { colors, radius, elevation } from '../theme/tokens';
+
+const SPRING_CFG = { damping: 15, stiffness: 300 };
 
 export default function Glass({
   children,
@@ -22,35 +33,43 @@ export default function Glass({
   onPress,
   disabled = false,
 }) {
-  const Wrapper = onPress ? Pressable : View;
-  const wrapperProps = onPress
-    ? {
-        onPress,
-        disabled,
-        style: ({ pressed }) => [
-          styles.base,
-          accent ? styles.accent : styles.default,
-          glow && styles.glow,
-          pressed && styles.pressed,
-          disabled && styles.disabled,
-          style,
-        ],
-      }
-    : {
-        style: [
-          styles.base,
-          accent ? styles.accent : styles.default,
-          glow && styles.glow,
-          disabled && styles.disabled,
-          style,
-        ],
-      };
+  const scale = useSharedValue(1);
 
-  return (
-    <Wrapper {...wrapperProps}>
+  const animatedScale = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const panelStyle = [
+    styles.base,
+    accent ? styles.accent : styles.default,
+    glow && styles.glow,
+    disabled && styles.disabled,
+    style,
+  ];
+
+  const content = (
+    <>
       {glow && <View style={styles.glowOrb} />}
       {children}
-    </Wrapper>
+    </>
+  );
+
+  if (!onPress) {
+    return <Animated.View style={panelStyle}>{content}</Animated.View>;
+  }
+
+  return (
+    <Animated.View style={[panelStyle, animatedScale]}>
+      <Pressable
+        onPress={onPress}
+        disabled={disabled}
+        onPressIn={() => { scale.value = withSpring(0.97, SPRING_CFG); }}
+        onPressOut={() => { scale.value = withSpring(1, SPRING_CFG); }}
+        style={styles.pressable}
+      >
+        {content}
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -72,9 +91,8 @@ const styles = StyleSheet.create({
   glow: {
     ...elevation.glow(colors.primaryGlow),
   },
-  pressed: {
-    backgroundColor: colors.glassHover,
-    transform: [{ scale: 0.98 }],
+  pressable: {
+    flex: 1,
   },
   disabled: {
     opacity: 0.4,
@@ -87,6 +105,6 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     backgroundColor: colors.primaryGlow,
-    opacity: 0.3,
+    opacity: 0.1,
   },
 });

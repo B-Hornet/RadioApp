@@ -2,30 +2,17 @@
  * AppNavigator — Root Navigation with NavDock + MiniPlayer
  * ═══════════════════════════════════════════════════════════════
  * Stack navigator with a custom bottom dock and persistent mini player.
- * The NavDock replaces the old card-based hub for navigation.
- * MiniPlayer shows on all screens except the full RadioPlayer.
- *
- * Architecture:
- *   NavigationContainer
- *     └── Stack.Navigator (headerShown: false)
- *           ├── WelcomeScreen (initial, no dock)
- *           ├── Hub
- *           ├── RadioPlayer
- *           ├── ChatRoom
- *           ├── SongRequests
- *           ├── DJSchedule
- *           ├── ListenerProfile
- *           └── MerchShop
- *     └── NavDock (absolute positioned, overlays all screens)
- *     └── MiniPlayer (absolute positioned, above NavDock)
+ * Owner-authenticated users get a Control Room nav item.
  */
 
 import React, { useState, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { colors } from './theme/tokens';
+import { useStream } from './StreamContext';
+import useOwnerAuth from './hooks/useOwnerAuth';
 
 // Screens
 import WelcomeScreen from './screens/WelcomeScreen';
@@ -36,21 +23,33 @@ import SongRequests from './screens/SongRequests';
 import DJSchedule from './screens/DJSchedule';
 import ListenerProfile from './screens/ListenerProfile';
 import MerchShop from './screens/MerchShop';
+import ControlRoom from './screens/ControlRoom';
 
 // Persistent UI
 import NavDock from './components/NavDock';
 import MiniPlayer from './components/MiniPlayer';
+import ShoutoutBanner from './components/ShoutoutBanner';
+import GiveawayModal from './components/GiveawayModal';
+import OwnerLoginModal from './components/OwnerLoginModal';
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
-// Screens where the NavDock should be hidden
 const HIDE_DOCK_SCREENS = ['Welcome'];
-// Screens where MiniPlayer should be hidden
 const HIDE_MINIPLAYER_SCREENS = ['Welcome', 'RadioPlayer'];
 
 function AppContent({ navigationRef }) {
-  // Track current route for dock/miniplayer visibility
   const [currentRoute, setCurrentRoute] = useState('Welcome');
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const {
+    isOwner,
+    authError,
+    login,
+    logout,
+    hasBiometricCreds,
+    enableBiometricLogin,
+    tryBiometricSignIn,
+    clearBiometricLogin,
+  } = useOwnerAuth();
 
   const onStateChange = useCallback(() => {
     const route = navigationRef.current?.getCurrentRoute();
@@ -62,14 +61,45 @@ function AppContent({ navigationRef }) {
   const showDock = !HIDE_DOCK_SCREENS.includes(currentRoute);
   const showMiniPlayer = !HIDE_MINIPLAYER_SCREENS.includes(currentRoute);
 
-  const handleNavigate = useCallback((route) => {
-    navigationRef.current?.navigate(route);
-  }, [navigationRef]);
+  const { isPlaying, isLive, trackTitle, artistName, togglePlayback } = useStream();
 
-  // TODO: Connect to your actual stream state / audio player
-  const handlePlayPause = useCallback(() => {
-    // Toggle playback
-  }, []);
+  const handleNavigate = useCallback((route) => {
+    if (route === 'ControlRoom' && !isOwner) {
+      setShowLoginModal(true);
+      return;
+    }
+    navigationRef.current?.navigate(route);
+  }, [navigationRef, isOwner]);
+
+  const handleLogin = async (email, password) => {
+    const success = await login(email, password);
+    if (success) {
+      setShowLoginModal(false);
+      navigationRef.current?.navigate('ControlRoom');
+    }
+    return success;
+  };
+
+  const handleOwnerLongPress = useCallback(async () => {
+    // Already signed in as owner → straight to ControlRoom.
+    if (isOwner) {
+      navigationRef.current?.navigate('ControlRoom');
+      return;
+    }
+    // Returning owner with stored creds → try Face ID first. iOS
+    // shows the biometric prompt; on success we land in ControlRoom
+    // with no UI to type into.
+    if (hasBiometricCreds) {
+      const success = await tryBiometricSignIn();
+      if (success) {
+        navigationRef.current?.navigate('ControlRoom');
+        return;
+      }
+      // Biometric cancelled or stored creds rejected — fall through
+      // to the manual modal so the user isn't dead-ended.
+    }
+    setShowLoginModal(true);
+  }, [isOwner, hasBiometricCreds, tryBiometricSignIn, navigationRef]);
 
   return (
     <View style={styles.container}>
@@ -81,8 +111,8 @@ function AppContent({ navigationRef }) {
           initialRouteName="Welcome"
           screenOptions={{
             headerShown: false,
-            animation: 'fade',
-            contentStyle: { backgroundColor: colors.bgDeep },
+            cardStyle: { backgroundColor: colors.bgDeep },
+            gestureEnabled: false,
           }}
         >
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
@@ -91,20 +121,25 @@ function AppContent({ navigationRef }) {
           <Stack.Screen name="ChatRoom" component={ChatRoom} />
           <Stack.Screen name="SongRequests" component={SongRequests} />
           <Stack.Screen name="DJSchedule" component={DJSchedule} />
-          <Stack.Screen name="ListenerProfile" component={ListenerProfile} />
+          <Stack.Screen name="ListenerProfile">
+            {(props) => (
+              <ListenerProfile {...props} onOwnerLongPress={handleOwnerLongPress} />
+            )}
+          </Stack.Screen>
           <Stack.Screen name="MerchShop" component={MerchShop} />
+          <Stack.Screen name="ControlRoom" component={ControlRoom} />
         </Stack.Navigator>
       </NavigationContainer>
 
-      {/* Persistent MiniPlayer — above NavDock */}
+      {/* Persistent MiniPlayer */}
       {showMiniPlayer && (
         <MiniPlayer
-          trackTitle="Midnight Frequencies"
-          djName="DJ Shadow"
-          isPlaying={true}
-          isLive={true}
+          trackTitle={trackTitle}
+          djName={artistName}
+          isPlaying={isPlaying}
+          isLive={isLive}
           onPress={() => handleNavigate('RadioPlayer')}
-          onPlayPause={handlePlayPause}
+          onPlayPause={togglePlayback}
         />
       )}
 
@@ -113,8 +148,23 @@ function AppContent({ navigationRef }) {
         <NavDock
           activeRoute={currentRoute}
           onNavigate={handleNavigate}
+          isOwner={isOwner}
         />
       )}
+
+      {/* Global shoutout banner + giveaway modal */}
+      <ShoutoutBanner />
+      <GiveawayModal />
+
+      {/* Owner login modal */}
+      <OwnerLoginModal
+        visible={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onLogin={handleLogin}
+        error={authError}
+        hasBiometricCreds={hasBiometricCreds}
+        onEnableBiometric={enableBiometricLogin}
+      />
     </View>
   );
 }

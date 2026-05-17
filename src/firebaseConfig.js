@@ -18,7 +18,14 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+// NOTE: deliberately NOT using getReactNativePersistence(AsyncStorage).
+// On this Hermes / iOS 26 / firebase JS SDK 10.14 combo, the AsyncStorage-
+// backed persistence layer hangs the first signInWithEmailAndPassword
+// call indefinitely (the native auth screen just spins). Without explicit
+// persistence the SDK falls back to in-memory, which means cold-starts
+// re-anonymize and owners have to sign in again — but Face ID via
+// react-native-keychain compensates for the owner case, and listener
+// identity is intentionally ephemeral anyway.
 const auth = getAuth(app);
 
 export { app, db, auth };
-

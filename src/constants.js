@@ -39,3 +39,13 @@ export const BADGES = [
 
 export const MESSAGE_LIMIT = 100;
 export const LEADERBOARD_LIMIT = 10;
+
+// Legal URLs surfaced inside the app and required by App Store
+// Connect / Play Console store listings. These need to point at
+// real, hosted pages BEFORE a public-facing build is uploaded.
+// Both stores require a privacy policy URL on the listing page.
+export const LEGAL_URLS = {
+  privacyPolicy: 'https://www.reebootradio.com/privacy-policy',
+  termsOfService: 'https://www.reebootradio.com/terms-of-service',
+  support: 'mailto:reebootradio@gmail.com',
+};

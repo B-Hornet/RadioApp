@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Animated } from 'react-native';
-import { db } from '../firebaseConfig';
+import { db, auth } from '../firebaseConfig';
 import {
   collection,
   addDoc,
@@ -101,7 +101,10 @@ const LiveReactions = () => {
   const sendReaction = async (reaction) => {
     addFloatingEmoji(reaction.emoji);
     try {
+      const uid = auth.currentUser?.uid;
+      if (!uid) return;
       await addDoc(collection(db, 'liveReactions'), {
+        uid,
         emoji: reaction.emoji,
         reactionId: reaction.id,
         timestamp: serverTimestamp(),

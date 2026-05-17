@@ -1,39 +1,38 @@
-import TrackPlayer, { Capability, RepeatMode } from 'react-native-track-player';
-import { STREAM_URL } from './constants';
+/**
+ * RNTP v4 Playback Service
+ * ─────────────────────────────────────────────────────────────
+ * Registered via TrackPlayer.registerPlaybackService in index.js.
+ * Without this file the lock-screen / Control Center / Bluetooth
+ * remote events are never delivered, and the capabilities declared
+ * in setupPlayer.js silently do nothing.
+ *
+ * Live radio: only Play, Pause, Stop, and Duck are meaningful.
+ * Seek/Jump/Skip are intentionally omitted because the source is
+ * a live ICY stream with no rewindable timeline.
+ */
 
-const setupPlayer = async () => {
-  await TrackPlayer.setupPlayer({
-    waitForBuffer: true,
+import TrackPlayer, { Event } from 'react-native-track-player';
+
+module.exports = async function () {
+  TrackPlayer.addEventListener(Event.RemotePlay, () => {
+    TrackPlayer.play().catch(() => {});
   });
 
-  await TrackPlayer.add({
-    id: 'reeboot-live',
-    url: STREAM_URL,
-    title: 'Reeboot Radio Live',
-    artist: 'Your Sound. Your Station.',
-    artwork: require('../assets/Images/reebologo.png'),
-    isLiveStream: true,
+  TrackPlayer.addEventListener(Event.RemotePause, () => {
+    TrackPlayer.pause().catch(() => {});
   });
 
-  await TrackPlayer.updateOptions({
-    stopWithApp: true,
-    capabilities: [
-      Capability.Play,
-      Capability.Pause,
-      Capability.Stop,
-    ],
-    compactCapabilities: [
-      Capability.Play,
-      Capability.Pause,
-    ],
-    notificationCapabilities: [
-      Capability.Play,
-      Capability.Pause,
-    ],
+  TrackPlayer.addEventListener(Event.RemoteStop, () => {
+    TrackPlayer.stop().catch(() => {});
   });
 
-  await TrackPlayer.setRepeatMode(RepeatMode.Off);
+  // Audio focus / interruption (calls, other media, route loss).
+  // permanent=true means audio focus is gone for good — pause.
+  // paused=true means transient loss — pause; do not auto-resume on
+  // paused=false because the user may want to stay paused.
+  TrackPlayer.addEventListener(Event.RemoteDuck, (event) => {
+    if (event.permanent || event.paused) {
+      TrackPlayer.pause().catch(() => {});
+    }
+  });
 };
-
-export default setupPlayer;
-

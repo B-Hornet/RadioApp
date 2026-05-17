@@ -13,7 +13,7 @@
  * This replaces the old RadioPlayer.js + LiveReactions.js
  */
 
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -36,6 +36,7 @@ import StudioLogo from '../components/StudioLogo';
 import LiveBadge from '../components/LiveBadge';
 import ListenerPill from '../components/ListenerPill';
 import VisualizerBars from '../components/VisualizerBars';
+import { useStream } from '../StreamContext';
 
 // ── Quick action data ──────────────────────────────────────
 const ACTIONS = [
@@ -87,13 +88,7 @@ const ControlButton = ({ icon, onPress, size = 44 }) => (
 // ═══════════════════════════════════════════════════════════
 
 export default function RadioPlayer({ navigation, route }) {
-  const [isPlaying, setIsPlaying] = useState(true);
-  const isLive = route?.params?.isLive ?? true;
-
-  // TODO: Connect to your actual audio streaming service
-  const togglePlayback = useCallback(() => {
-    setIsPlaying((prev) => !prev);
-  }, []);
+  const { isPlaying, isLive, trackTitle, artistName, togglePlayback } = useStream();
 
   return (
     <View style={styles.screen}>
@@ -101,7 +96,6 @@ export default function RadioPlayer({ navigation, route }) {
 
       {/* Ambient studio glow — radiates from top center */}
       <View style={styles.ambientGlow} />
-      <View style={styles.bottomFade} />
 
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <ScrollView
@@ -125,11 +119,11 @@ export default function RadioPlayer({ navigation, route }) {
           {/* ── Track Info Glass Panel ──────────────────── */}
           <Animated.View entering={SlideInUp.delay(300).springify()}>
             <View style={styles.trackSection}>
-              <Glass accent glow style={styles.trackCard}>
-                <Text style={styles.trackTitle}>Midnight Frequencies</Text>
-                <Text style={styles.djName}>DJ Shadow</Text>
+              <Glass accent style={styles.trackCard}>
+                <Text style={styles.trackTitle} numberOfLines={2}>{trackTitle}</Text>
+                <Text style={styles.djName} numberOfLines={1}>{artistName}</Text>
                 <Text style={styles.upNext}>
-                  UP NEXT: Night Drive Mix • DJ Pulse • 11:00 PM
+                  REEBOOT RADIO • LIVE 24/7
                 </Text>
               </Glass>
             </View>
@@ -202,16 +196,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryGlow,
     opacity: 0.12,
   },
-  bottomFade: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 200,
-    backgroundColor: colors.bgDeep,
-    opacity: 0.8,
-    zIndex: 2,
-  },
 
   // Header
   header: {
@@ -255,10 +239,10 @@ const styles = StyleSheet.create({
   trackTitle: {
     fontFamily: 'Oswald-Bold',
     fontWeight: '700',
-    fontSize: typography.size.xxl,
+    fontSize: typography.size.xl,
     color: colors.textPrimary,
     letterSpacing: 0.5,
-    lineHeight: typography.size.xxl * typography.lineHeight.tight,
+    lineHeight: typography.size.xl * typography.lineHeight.tight,
   },
   djName: {
     fontFamily: 'DMSans-Medium',

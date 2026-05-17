@@ -22,25 +22,22 @@ import { colors, typography, spacing, radius, presets } from '../theme/tokens';
 import Glass from '../components/Glass';
 import StudioLogo from '../components/StudioLogo';
 import LiveBadge from '../components/LiveBadge';
-import ListenerPill from '../components/ListenerPill';
 import VisualizerBars from '../components/VisualizerBars';
+import { useStream } from '../StreamContext';
 
-// ── Quick access items ─────────────────────────────────────
+// Quick-access tiles. Subtitles are intentionally action-descriptive
+// rather than count-based — we don't have real-time queue / active
+// listener counts plumbed through yet, so honesty beats a fake "48 active".
 const QUICK_ITEMS = [
-  { icon: '💬', label: 'Live Chat', sub: '48 active', route: 'ChatRoom', hot: true },
-  { icon: '🎵', label: 'Requests', sub: '12 in queue', route: 'SongRequests' },
-  { icon: '📅', label: 'Schedule', sub: 'This week', route: 'DJSchedule' },
-  { icon: '👤', label: 'My Profile', sub: 'Level 7', route: 'ListenerProfile' },
-];
-
-// ── Upcoming shows data (TODO: connect to Firestore) ──────
-const UPCOMING = [
-  { time: '11:00 PM', dj: 'DJ Pulse', show: 'Night Drive Mix', soon: true },
-  { time: '1:00 AM', dj: 'MC Vortex', show: 'Bass Cathedral', soon: false },
-  { time: '3:00 AM', dj: 'Luna Wave', show: 'Ambient Hours', soon: false },
+  { icon: '💬', label: 'Live Chat', sub: 'Talk back', route: 'ChatRoom', hot: true },
+  { icon: '🎵', label: 'Requests', sub: 'Tell the DJ', route: 'SongRequests' },
+  { icon: '📅', label: 'Schedule', sub: "This week's lineup", route: 'DJSchedule' },
+  { icon: '👤', label: 'My Profile', sub: 'Stats & badges', route: 'ListenerProfile' },
 ];
 
 export default function HubScreen({ navigation }) {
+  const { isPlaying, isLive, trackTitle, artistName } = useStream();
+
   return (
     <View style={styles.screen}>
       <StatusBar barStyle="light-content" backgroundColor={colors.bgDeep} />
@@ -58,7 +55,9 @@ export default function HubScreen({ navigation }) {
             <StudioLogo size={40} glow={false} mini />
             <View>
               <Text style={styles.stationName}>REEBOOT RADIO</Text>
-              <Text style={styles.stationStatus}>● ON AIR</Text>
+              <Text style={[styles.stationStatus, !isLive && styles.stationStatusOff]}>
+                {isLive ? '● ON AIR' : '○ OFF AIR'}
+              </Text>
             </View>
           </Animated.View>
 
@@ -68,23 +67,22 @@ export default function HubScreen({ navigation }) {
               <Glass
                 accent
                 glow
-                onPress={() => navigation.navigate('RadioPlayer', { isLive: true })}
+                onPress={() => navigation.navigate('RadioPlayer')}
                 style={styles.heroCard}
               >
                 <View style={styles.heroInner}>
                   <View style={styles.heroRow}>
-                    <StudioLogo size={72} glow spinning playing />
+                    <StudioLogo size={72} glow spinning={isPlaying} playing={isPlaying} />
                     <View style={styles.heroInfo}>
                       <View style={styles.heroBadges}>
-                        <LiveBadge size="sm" />
-                        <ListenerPill count={1247} />
+                        {isLive && <LiveBadge size="sm" />}
                       </View>
-                      <Text style={styles.heroTitle}>Midnight Frequencies</Text>
-                      <Text style={styles.heroDJ}>DJ Shadow</Text>
+                      <Text style={styles.heroTitle}>{trackTitle}</Text>
+                      <Text style={styles.heroDJ}>{artistName}</Text>
                     </View>
                   </View>
                   <View style={styles.heroVisualizer}>
-                    <VisualizerBars count={48} height={28} playing />
+                    <VisualizerBars count={48} height={28} playing={isPlaying} />
                   </View>
                 </View>
               </Glass>
@@ -117,32 +115,6 @@ export default function HubScreen({ navigation }) {
             </View>
           </View>
 
-          {/* ── Coming Up ──────────────────────────────── */}
-          <View style={styles.section}>
-            <Text style={presets.sectionLabel}>Coming Up</Text>
-            {UPCOMING.map((show, i) => (
-              <Animated.View
-                key={i}
-                entering={FadeInDown.delay(600 + i * 80).springify()}
-              >
-                <Glass style={styles.showRow}>
-                  <Text style={[styles.showTime, show.soon && styles.showTimeSoon]}>
-                    {show.time}
-                  </Text>
-                  <View style={styles.showDivider} />
-                  <View style={styles.showInfo}>
-                    <Text style={styles.showName}>{show.show}</Text>
-                    <Text style={styles.showDJ}>{show.dj}</Text>
-                  </View>
-                  {show.soon && (
-                    <View style={styles.nextBadge}>
-                      <Text style={styles.nextBadgeText}>NEXT</Text>
-                    </View>
-                  )}
-                </Glass>
-              </Animated.View>
-            ))}
-          </View>
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -193,6 +165,9 @@ const styles = StyleSheet.create({
     fontSize: typography.size.xs,
     color: colors.online,
     letterSpacing: 0.5,
+  },
+  stationStatusOff: {
+    color: colors.textMuted,
   },
 
   // Hero card
@@ -291,58 +266,4 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
 
-  // Show rows
-  showRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    padding: spacing.md,
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
-  },
-  showTime: {
-    fontFamily: 'JetBrainsMono-Medium',
-    fontWeight: '500',
-    fontSize: typography.size.sm,
-    color: colors.textMuted,
-    minWidth: 64,
-  },
-  showTimeSoon: {
-    color: colors.primary,
-  },
-  showDivider: {
-    width: 1,
-    height: 28,
-    backgroundColor: colors.glassBorder,
-  },
-  showInfo: {
-    flex: 1,
-  },
-  showName: {
-    fontFamily: 'DMSans-SemiBold',
-    fontWeight: '600',
-    fontSize: typography.size.md,
-    color: colors.textPrimary,
-  },
-  showDJ: {
-    fontFamily: 'DMSans-Regular',
-    fontWeight: '400',
-    fontSize: typography.size.sm,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
-  },
-  nextBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 107, 0, 0.2)',
-  },
-  nextBadgeText: {
-    fontFamily: 'JetBrainsMono-Regular',
-    fontWeight: '400',
-    fontSize: 9,
-    color: colors.primary,
-    letterSpacing: 1,
-  },
 });
