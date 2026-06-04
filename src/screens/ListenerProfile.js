@@ -24,11 +24,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { db, auth } from '../firebaseConfig';
 import { collection, onSnapshot, query, orderBy, limit, doc } from 'firebase/firestore';
 import { colors, typography, spacing, radius, presets, elevation } from '../theme/tokens';
-import { BADGES, LEADERBOARD_LIMIT, LEGAL_URLS } from '../constants';
+import { BADGES, LEADERBOARD_LIMIT, LEGAL_URLS, MODERATION_STRINGS } from '../constants';
 import Glass from '../components/Glass';
 import useListenerAuth from '../hooks/useListenerAuth';
+import useBlockList from '../hooks/useBlockList';
 import ListenerAuthModal from '../components/ListenerAuthModal';
 import DeleteAccountModal from '../components/DeleteAccountModal';
+
+// A blocked entry only carries the sender uid (no display name is
+// stored locally), so we surface a short, stable label instead.
+const shortUid = (uid) => (uid && uid.length > 8 ? `${uid.slice(0, 8)}…` : uid);
 
 // ── Stat Card ──────────────────────────────────────────────
 const StatCard = ({ stat, index }) => (
@@ -75,6 +80,7 @@ export default function ListenerProfile({ onOwnerLongPress }) {
     deleteAccount,
     clearError,
   } = useListenerAuth();
+  const { blockedUids, unblockUser } = useBlockList();
   const [leaderboard, setLeaderboard] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   // Badges populate from users/{uid}.badges once a Cloud Function
@@ -266,6 +272,40 @@ export default function ListenerProfile({ onOwnerLongPress }) {
                   Leaderboard updates weekly. Keep listening to earn points!
                 </Text>
               </Glass>
+            )}
+          </View>
+
+          {/* Blocked listeners — moderation (App Store guideline 1.2).
+              Lets a listener review and undo blocks made from chat. */}
+          <View style={styles.section}>
+            <Text style={presets.sectionLabel}>
+              {MODERATION_STRINGS.blockedSectionTitle}
+            </Text>
+            {blockedUids.length === 0 ? (
+              <Glass style={styles.emptyLeaderboard}>
+                <Text style={styles.emptyText}>
+                  {MODERATION_STRINGS.blockedEmpty}
+                </Text>
+              </Glass>
+            ) : (
+              blockedUids.map((uid) => (
+                <Glass key={uid} style={styles.blockedRow}>
+                  <View style={styles.blockedInfo}>
+                    <Text style={styles.blockedLabel}>
+                      {MODERATION_STRINGS.blockedRowLabel}
+                    </Text>
+                    <Text style={styles.blockedUid}>{shortUid(uid)}</Text>
+                  </View>
+                  <Pressable
+                    onPress={() => unblockUser(uid)}
+                    style={styles.unblockBtn}
+                  >
+                    <Text style={styles.unblockBtnText}>
+                      {MODERATION_STRINGS.unblockAction}
+                    </Text>
+                  </Pressable>
+                </Glass>
+              ))
             )}
           </View>
 
@@ -477,6 +517,30 @@ const styles = StyleSheet.create({
   emptyText: {
     fontFamily: 'DMSans-Regular', fontWeight: '400',
     fontSize: typography.size.sm, color: colors.textMuted, textAlign: 'center',
+  },
+
+  // Blocked listeners
+  blockedRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    padding: spacing.md, paddingHorizontal: spacing.lg, marginBottom: spacing.sm,
+  },
+  blockedInfo: { flex: 1, marginRight: spacing.md },
+  blockedLabel: {
+    fontFamily: 'DMSans-SemiBold', fontWeight: '600',
+    fontSize: typography.size.sm, color: colors.textPrimary,
+  },
+  blockedUid: {
+    fontFamily: 'JetBrainsMono-Regular', fontWeight: '400',
+    fontSize: typography.size.xs, color: colors.textMuted, marginTop: spacing.xs,
+  },
+  unblockBtn: {
+    paddingHorizontal: spacing.lg, paddingVertical: spacing.xs,
+    borderRadius: radius.full, borderWidth: 1, borderColor: colors.primaryBorder,
+    backgroundColor: colors.primarySubtle,
+  },
+  unblockBtnText: {
+    fontFamily: 'DMSans-Medium', fontWeight: '500',
+    fontSize: typography.size.xs, color: colors.primary, letterSpacing: 0.5,
   },
 
   // Share
