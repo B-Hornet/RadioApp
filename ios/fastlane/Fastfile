@@ -63,7 +63,10 @@ platform :ios do
   end
 
   def ipa_path
-    ipa = Dir.glob("../build/ios/ipa/*.ipa").first
+    # Prefer the path gym just produced; fall back to an absolute glob.
+    # (A bare "../build" glob resolves against ios/fastlane/, not ios/.)
+    ipa = Actions.lane_context[Actions::SharedValues::IPA_OUTPUT_PATH]
+    ipa ||= Dir.glob(File.expand_path("../../build/ios/ipa/*.ipa", __dir__)).first
     UI.user_error!("No IPA found in build/ios/ipa/ — did build_release_ipa succeed?") if ipa.nil?
     File.expand_path(ipa)
   end
