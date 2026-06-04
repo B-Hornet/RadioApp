@@ -229,7 +229,9 @@ export default function ChatRoom({ navigation, route }) {
       unsubMessages();
       unsubListeners();
     };
-  }, [username]);
+    // The effect body is gated on `user`, not `username` — re-run when the
+    // auth identity changes (anon -> signed-in), not on display-name changes.
+  }, [user]);
 
   // Live block filter — recomputes only when the message set or the
   // block list changes. Applies to already-rendered history too,

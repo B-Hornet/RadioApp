@@ -19,7 +19,11 @@ import { REPORTS_COLLECTION } from '../constants';
 
 export default async function reportMessage(message) {
   if (!message || !message.id) return false;
-  const reporterUid = auth.currentUser?.uid || 'anonymous';
+  // No auth context at all (anonymous bootstrap failed): rules require
+  // isAuthed(), so the write would be denied anyway — bail out early.
+  const currentUser = auth.currentUser;
+  if (!currentUser) return false;
+  const reporterUid = currentUser.uid;
   try {
     await addDoc(collection(db, REPORTS_COLLECTION), {
       messageId: message.id,
