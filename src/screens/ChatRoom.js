@@ -12,7 +12,7 @@
  *   - Animated LIVE pulse (RN Animated, no Reanimated)
  */
 
-import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import {
   View,
   Text,
@@ -40,9 +40,12 @@ import {
   doc,
 } from 'firebase/firestore';
 import { colors, typography, spacing, radius, layout } from '../theme/tokens';
-import { CHATROOM_ID, CHAT_COLORS, MESSAGE_LIMIT } from '../constants';
+import { CHATROOM_ID, CHAT_COLORS, MESSAGE_LIMIT, MODERATION_STRINGS } from '../constants';
 import useListenerAuth from '../hooks/useListenerAuth';
+import useBlockList from '../hooks/useBlockList';
+import reportMessage from '../services/reportMessage';
 import ListenerAuthModal from '../components/ListenerAuthModal';
+import MessageActionSheet from '../components/MessageActionSheet';
 
 // ── Helpers ──────────────────────────────────────────────────
 const getColorForUser = (username) => {
@@ -81,16 +84,29 @@ const LivePulseDot = () => {
 // Memoized — FlatList passes a stable item per row, so identical
 // messages don't re-render on scroll or new arrivals. Cuts paint
 // cost on long histories from O(n) per scroll tick to O(visible).
-const ChatBubble = memo(function ChatBubble({ item, isOwn }) {
+const ChatBubble = memo(function ChatBubble({ item, isOwn, onLongPress }) {
   const isDJ = item.role === 'dj' || DJ_NAMES.includes(item.username);
   const userColor = getColorForUser(item.username || 'anon');
 
+  // Moderation affordance: long-press another listener's message to
+  // open the report/block sheet. Disabled on your own messages and on
+  // legacy messages with no sender uid (nothing stable to block).
+  const canModerate = !isOwn && !!item.uid;
+  const handleLongPress = useCallback(() => {
+    if (canModerate) onLongPress?.(item);
+  }, [canModerate, onLongPress, item]);
+
   return (
     <View style={[styles.bubbleRow, isOwn && styles.bubbleRowOwn]}>
-      <View style={[
-        styles.bubble,
-        isOwn ? styles.bubbleOwn : (isDJ ? styles.bubbleAccent : styles.bubbleOther),
-      ]}>
+      <Pressable
+        onLongPress={canModerate ? handleLongPress : undefined}
+        delayLongPress={350}
+        disabled={!canModerate}
+        style={[
+          styles.bubble,
+          isOwn ? styles.bubbleOwn : (isDJ ? styles.bubbleAccent : styles.bubbleOther),
+        ]}
+      >
         {!isOwn && (
           <View style={styles.bubbleHeader}>
             <Text style={[styles.username, { color: isDJ ? colors.primary : userColor }]}>
@@ -107,7 +123,7 @@ const ChatBubble = memo(function ChatBubble({ item, isOwn }) {
         <Text style={[styles.timestamp, isOwn && styles.timestampOwn]}>
           {formatTime(item.timestamp)}
         </Text>
-      </View>
+      </Pressable>
     </View>
   );
 });
@@ -127,17 +143,21 @@ export default function ChatRoom({ navigation, route }) {
     signUp,
     clearError,
   } = useListenerAuth();
+  const { blockedUids, blockUser } = useBlockList();
   const [messages, setMessages] = useState([]);
   const [listenerCount, setListenerCount] = useState(0);
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  // Target message for the moderation action sheet (null = closed).
+  const [actionTarget, setActionTarget] = useState(null);
 
   // The username shown next to your messages and used to color
   // your bubble. For signed-in users it's their Firebase displayName;
   // anonymous users can't post anyway, so a sane fallback is fine.
   const username = displayName || 'Listener';
+  const myUid = auth.currentUser?.uid || null;
 
   // Firebase listeners — start as soon as we have any auth context
   // (including the anonymous bootstrap from App.js).
@@ -211,12 +231,72 @@ export default function ChatRoom({ navigation, route }) {
     };
   }, [username]);
 
+  // Live block filter — recomputes only when the message set or the
+  // block list changes. Applies to already-rendered history too,
+  // since the FlatList renders from this derived array. Blocking is
+  // by sender uid; legacy messages without a uid are never filtered.
+  const visibleMessages = useMemo(() => {
+    if (blockedUids.length === 0) return messages;
+    return messages.filter((m) => !(m.uid && blockedUids.includes(m.uid)));
+  }, [messages, blockedUids]);
+
+  // Open the report/block sheet for a given message.
+  const handleOpenActions = useCallback((item) => {
+    setActionTarget(item);
+  }, []);
+
+  const handleCloseActions = useCallback(() => {
+    setActionTarget(null);
+  }, []);
+
+  // Report: write to the `reports` collection (allowed anonymously),
+  // then confirm. Close the sheet before the async call so the UI
+  // feels instant; the alert lands regardless of outcome.
+  const handleReport = useCallback(async () => {
+    const target = actionTarget;
+    setActionTarget(null);
+    if (!target) return;
+    const ok = await reportMessage(target);
+    if (ok) {
+      Alert.alert(
+        MODERATION_STRINGS.reportConfirmTitle,
+        MODERATION_STRINGS.reportConfirmBody,
+      );
+    } else {
+      Alert.alert(
+        MODERATION_STRINGS.reportFailTitle,
+        MODERATION_STRINGS.reportFailBody,
+      );
+    }
+  }, [actionTarget]);
+
+  // Block: add the sender uid to the local (and mirrored) block list,
+  // then confirm. The visibleMessages memo removes their messages on
+  // the next render.
+  const handleBlock = useCallback(() => {
+    const target = actionTarget;
+    setActionTarget(null);
+    if (!target || !target.uid) return;
+    blockUser(target.uid);
+    Alert.alert(
+      MODERATION_STRINGS.blockConfirmTitle,
+      MODERATION_STRINGS.blockConfirmBody,
+    );
+  }, [actionTarget, blockUser]);
+
   // FlatList renderItem — declared at component scope and memoized
-  // by useCallback on `username` so its identity stays stable across
-  // re-renders. FlatList uses identity to skip row work.
-  const renderItem = useCallback(({ item }) => (
-    <ChatBubble item={item} isOwn={item.username === username} />
-  ), [username]);
+  // by useCallback so its identity stays stable across re-renders.
+  // FlatList uses identity to skip row work. Own-message detection
+  // prefers uid (robust) and falls back to username for legacy/
+  // old-app messages that predate the uid field.
+  const renderItem = useCallback(({ item }) => {
+    const isOwn = item.uid
+      ? item.uid === myUid
+      : item.username === username;
+    return (
+      <ChatBubble item={item} isOwn={isOwn} onLongPress={handleOpenActions} />
+    );
+  }, [username, myUid, handleOpenActions]);
 
   const keyExtractor = useCallback((item) => item.id, []);
 
@@ -297,7 +377,7 @@ export default function ChatRoom({ navigation, route }) {
               <ActivityIndicator size="large" color={colors.primary} />
               <Text style={styles.loadingText}>Loading messages...</Text>
             </View>
-          ) : messages.length === 0 ? (
+          ) : visibleMessages.length === 0 ? (
             <View style={[styles.flex, styles.emptyState]}>
               <Text style={styles.emptyEmoji}>💬</Text>
               <Text style={styles.emptyText}>No messages yet</Text>
@@ -305,7 +385,7 @@ export default function ChatRoom({ navigation, route }) {
             </View>
           ) : (
             <FlatList
-              data={messages}
+              data={visibleMessages}
               renderItem={renderItem}
               keyExtractor={keyExtractor}
               inverted
@@ -363,6 +443,14 @@ export default function ChatRoom({ navigation, route }) {
         onSignUp={signUp}
         authError={authError}
         clearError={clearError}
+      />
+
+      <MessageActionSheet
+        visible={!!actionTarget}
+        message={actionTarget}
+        onReport={handleReport}
+        onBlock={handleBlock}
+        onClose={handleCloseActions}
       />
     </View>
   );

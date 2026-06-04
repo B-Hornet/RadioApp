@@ -10,3 +10,4 @@ export { default as VisualizerBars } from './VisualizerBars';
 export { default as StudioLogo } from './StudioLogo';
 export { default as MiniPlayer } from './MiniPlayer';
 export { default as NavDock } from './NavDock';
+export { default as MessageActionSheet } from './MessageActionSheet';
