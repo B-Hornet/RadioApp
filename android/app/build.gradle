@@ -1,6 +1,11 @@
 // File: android/app/build.gradle
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
+apply plugin: "com.facebook.react"
+
+react {
+    autolinkLibrariesWithApp()
+}
 
 // Load release signing config from gitignored android/keystore.properties.
 // Falls back to debug-signed builds when the file is absent (CI, fresh clones).
@@ -13,7 +18,9 @@ if (hasReleaseSigning) {
 
 android {
     namespace 'com.reebootradioapp'
-    compileSdkVersion 34
+    ndkVersion rootProject.ext.ndkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdk rootProject.ext.compileSdkVersion
 
     buildFeatures {
         buildConfig true
@@ -21,15 +28,25 @@ android {
 
     defaultConfig {
         applicationId "com.reebootradioapp"
-        minSdkVersion 23
-        targetSdkVersion 34
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
         // ⚠ versionCode MUST be bumped above the last value uploaded
         //   to Google Play Console before this build ships. Verify
         //   in Play Console → Reeboot Radio → Production → Release
         //   history, then increment the integer below.
-        versionCode 1
+        versionCode 2
         versionName "2.2.0"
         multiDexEnabled true
+    }
+
+    // 16KB page size compliance (Play requirement, Nov 1 2025).
+    // useLegacyPackaging = false uses page-aligned uncompressed .so layout
+    // that is 16KB-compatible. Combined with NDK r28+ and AGP 8.5.1+, this
+    // is the minimum config Play accepts.
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = false
+        }
     }
 
     signingConfigs {
@@ -58,9 +75,14 @@ android {
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation "com.facebook.react:react-android:0.75.3"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.10"
+    implementation "com.facebook.react:react-android"
     implementation "androidx.multidex:multidex:2.0.1"
-    implementation project(':react-native-track-player')
+
+    if (hermesEnabled.toBoolean()) {
+        implementation("com.facebook.react:hermes-android")
+    } else {
+        implementation jscFlavor
+    }
 }
 
+def jscFlavor = 'org.webkit:android-jsc:+'

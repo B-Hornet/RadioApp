@@ -1,8 +1,13 @@
 // File: android/settings.gradle
+// React Native 0.76+ pulls in the gradle plugin via pluginManagement +
+// settings-plugin, and autolinks native modules from package.json.
+
+pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
+plugins { id("com.facebook.react.settings") }
+extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
+    ex.autolinkLibrariesFromCommand()
+}
+
 rootProject.name = 'ReebootRadioApp'
-
-// Include the necessary modules
 include ':app'
-include ':react-native-track-player'
-project(':react-native-track-player').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-track-player/android')
-
+includeBuild('../node_modules/@react-native/gradle-plugin')

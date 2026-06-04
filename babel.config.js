@@ -1,18 +1,8 @@
 module.exports = {
-  presets: ['module:metro-react-native-babel-preset'],
+  presets: ['module:@react-native/babel-preset'],
   plugins: [
-    '@babel/plugin-transform-class-properties',
-    '@babel/plugin-transform-private-methods',
-    '@babel/plugin-transform-private-property-in-object',
-    [
-      '@babel/plugin-transform-runtime',
-      {
-        helpers: true,  // Reuse helper functions across modules
-        regenerator: true,  // Enables async/await support
-        corejs: false  // Avoids unwanted polyfills
-      },
-    ],
-    'react-native-reanimated/plugin', // must be last
+    // react-native-reanimated MUST be last
+    'react-native-reanimated/plugin',
   ],
   env: {
     production: {
@@ -20,4 +10,3 @@ module.exports = {
     },
   },
 };
-
