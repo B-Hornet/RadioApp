@@ -40,6 +40,34 @@ export const BADGES = [
 export const MESSAGE_LIMIT = 100;
 export const LEADERBOARD_LIMIT = 10;
 
+// ── Moderation (App Store guideline 1.2 — UGC safety) ──────────
+// Firestore collection that receives user-submitted message reports.
+// Write-only from clients; moderators review server-side.
+export const REPORTS_COLLECTION = 'reports';
+
+// AsyncStorage key for the device-local block list. Persists across
+// launches and applies even to anonymous listeners.
+export const BLOCKED_UIDS_KEY = 'reeboot.blockedUids.v1';
+
+// All new moderation-facing copy in one place so the i18n branch can
+// sweep it later. Plain, short, neutral English.
+export const MODERATION_STRINGS = {
+  sheetTitle: 'Message Options',
+  reportAction: 'Report Message',
+  blockAction: 'Block User',
+  cancel: 'Cancel',
+  reportConfirmTitle: 'Report Received',
+  reportConfirmBody: 'Thanks. Our moderators will review this message.',
+  reportFailTitle: 'Report Failed',
+  reportFailBody: 'Could not submit your report. Please try again.',
+  blockConfirmTitle: 'User Blocked',
+  blockConfirmBody: 'You will no longer see messages from this user. You can unblock them anytime in your profile.',
+  blockedSectionTitle: 'Blocked Listeners',
+  blockedEmpty: 'You have not blocked anyone.',
+  unblockAction: 'Unblock',
+  blockedRowLabel: 'Blocked user',
+};
+
 // Legal URLs surfaced inside the app and required by App Store
 // Connect / Play Console store listings. These need to point at
 // real, hosted pages BEFORE a public-facing build is uploaded.
