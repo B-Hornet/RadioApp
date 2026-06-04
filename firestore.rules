@@ -28,7 +28,8 @@ service cloud.firestore {
       allow update: if (isAuthed() && request.auth.uid == uid
                        && request.resource.data.diff(resource.data)
                           .affectedKeys()
-                          .hasOnly(['displayName', 'avatarUrl', 'updatedAt']))
+                          .hasOnly(['displayName', 'avatarUrl', 'updatedAt',
+                                    'blockedUids']))
                     || isOwner();
       allow delete: if (isAuthed() && request.auth.uid == uid) || isOwner();
     }
@@ -65,6 +66,23 @@ service cloud.firestore {
       allow delete: if isOwner()
                     || (isAuthed() && 'uid' in resource.data
                         && resource.data.uid == request.auth.uid);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // reports — UGC moderation (App Store guideline 1.2). Any client
+    // with a Firebase identity (anonymous bootstrap OR signed-in) may
+    // CREATE a report. No client read/update/delete — moderators work
+    // server-side via the Admin SDK. reporterUid must be the caller's
+    // uid, or the literal 'anonymous' for an anonymous reporter.
+    // ─────────────────────────────────────────────────────────────
+    match /reports/{reportId} {
+      allow read, update, delete: if false;
+      allow create: if isAuthed()
+                    && request.resource.data.reason == 'user_report'
+                    && request.resource.data.status == 'open'
+                    && request.resource.data.reporterUid is string
+                    && (request.resource.data.reporterUid == request.auth.uid
+                        || request.resource.data.reporterUid == 'anonymous');
     }
 
     // ─────────────────────────────────────────────────────────────
