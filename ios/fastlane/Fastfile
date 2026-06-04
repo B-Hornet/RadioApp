@@ -37,11 +37,10 @@ platform :ios do
   end
 
   def bump_ios_build_number
-    plist = "ReebootRadioApp/Info.plist"
-    current = sh("/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' #{plist}").strip.to_i
-    new_build = current + 1
-    sh("/usr/libexec/PlistBuddy -c 'Set :CFBundleVersion #{new_build}' #{plist}")
-    UI.success("Info.plist CFBundleVersion bumped: #{current} → #{new_build}")
+    # Info.plist uses $(CURRENT_PROJECT_VERSION); bump the pbxproj value via
+    # agvtool (VERSIONING_SYSTEM = apple-generic), not PlistBuddy on the plist.
+    new_build = increment_build_number(xcodeproj: "ReebootRadioApp.xcodeproj")
+    UI.success("CURRENT_PROJECT_VERSION bumped to #{new_build}")
   end
 
   def build_release_ipa

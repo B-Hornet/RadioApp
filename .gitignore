@@ -71,3 +71,4 @@ coverage/
 *.log
 tmp/
 temp/
+ios/fastlane/report.xml
